@@ -127,8 +127,6 @@ jobs:
           echo "MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
 
       - name: Compile binaries
-        env:
-          RUSTFLAGS: -C link-args=-s
         uses: actions-rs/cargo@v1
         with:
           command: build
@@ -145,16 +143,16 @@ jobs:
 
             ./target/${TARGET}/release/timestampvm-rs --help
             cp ./target/${TARGET}/release/timestampvm-rs timestampvm-rs.${TARGET}
-            echo "::set-output name=file_name_timestampvm_rs::timestampvm-rs.${TARGET}"
+            echo "file_name_timestampvm_rs=timestampvm-rs.${TARGET}" >> $GITHUB_OUTPUT
             tar -czvf timestampvm-rs_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm-rs
-            echo "::set-output name=file_name_timestampvm_rs_tar_gz::timestampvm-rs_${TARGET}.tar.gz"
+            echo "file_name_timestampvm_rs_tar_gz=timestampvm-rs_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
 
           elif [ "$PLATFORM_NAME" == "darwin" ]; then
 
             cp ./target/${TARGET}/release/timestampvm-rs timestampvm-rs.${TARGET}
-            echo "::set-output name=file_name_timestampvm_rs::timestampvm-rs.${TARGET}"
+            echo "file_name_timestampvm_rs=timestampvm-rs.${TARGET}" >> $GITHUB_OUTPUT
             gtar -czvf timestampvm-rs_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm-rs
-            echo "::set-output name=file_name_timestampvm_rs_tar_gz::timestampvm-rs_${TARGET}.tar.gz"
+            echo "file_name_timestampvm_rs_tar_gz=timestampvm-rs_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
 
           else
 
