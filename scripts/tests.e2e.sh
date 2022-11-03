@@ -50,12 +50,10 @@ sleep 5
 
 #################################
 echo "running e2e tests"
-cargo build \
---release \
---bin e2e
-
-./target/release/e2e -h
-./target/release/e2e
+NETWORK_RUNNER_GRPC_ENDPOINT=http://127.0.0.1:12342 \
+NETWORK_RUNNER_AVALANCHEGO_PATH=${AVALANCHEGO_PATH} \
+RUST_LOG=debug \
+cargo test --all-features --package e2e -- --show-output --nocapture
 
 #################################
 # "e2e.test" already terminates the cluster for "test" mode
