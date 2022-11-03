@@ -126,9 +126,11 @@ jobs:
           echo "SDKROOT=$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
 
-      - name: Compile binaries
+      # ref. https://github.com/actions-rs/cargo
+      - name: Build target
         uses: actions-rs/cargo@v1
         with:
+          use-cross: true
           command: build
           args: --release --bin timestampvm-rs --target ${{ matrix.job.target }}
 
