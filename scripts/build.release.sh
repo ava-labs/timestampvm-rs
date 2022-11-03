@@ -9,6 +9,6 @@ fi
 # "--bin" can be specified multiple times for each directory in "bin/*" or workspaces
 cargo build \
 --release \
---bin timestampvm-rs
+--bin timestampvm
 
-./target/release/timestampvm-rs --help
+./target/release/timestampvm --help

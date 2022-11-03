@@ -132,7 +132,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release --bin timestampvm-rs --target ${{ matrix.job.target }}
+          args: --release --bin timestampvm --target ${{ matrix.job.target }}
 
       - name: Compress binaries
         id: release_artifacts
@@ -143,17 +143,17 @@ jobs:
         run: |
           if [ "$PLATFORM_NAME" == "linux" ]; then
 
-            cp ./target/${TARGET}/release/timestampvm-rs timestampvm-rs.${TARGET}
-            echo "file_name_timestampvm_rs=timestampvm-rs.${TARGET}" >> $GITHUB_OUTPUT
-            tar -czvf timestampvm-rs_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm-rs
-            echo "file_name_timestampvm_rs_tar_gz=timestampvm-rs_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
+            cp ./target/${TARGET}/release/timestampvm timestampvm.${TARGET}
+            echo "file_name_timestampvm_rs=timestampvm.${TARGET}" >> $GITHUB_OUTPUT
+            tar -czvf timestampvm_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm
+            echo "file_name_timestampvm_rs_tar_gz=timestampvm_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
 
           elif [ "$PLATFORM_NAME" == "darwin" ]; then
 
-            cp ./target/${TARGET}/release/timestampvm-rs timestampvm-rs.${TARGET}
-            echo "file_name_timestampvm_rs=timestampvm-rs.${TARGET}" >> $GITHUB_OUTPUT
-            gtar -czvf timestampvm-rs_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm-rs
-            echo "file_name_timestampvm_rs_tar_gz=timestampvm-rs_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
+            cp ./target/${TARGET}/release/timestampvm timestampvm.${TARGET}
+            echo "file_name_timestampvm_rs=timestampvm.${TARGET}" >> $GITHUB_OUTPUT
+            gtar -czvf timestampvm_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm
+            echo "file_name_timestampvm_rs_tar_gz=timestampvm_${TARGET}.tar.gz" >> $GITHUB_OUTPUT
 
           else
 
