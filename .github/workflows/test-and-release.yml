@@ -143,7 +143,6 @@ jobs:
         run: |
           if [ "$PLATFORM_NAME" == "linux" ]; then
 
-            ./target/${TARGET}/release/timestampvm-rs --help
             cp ./target/${TARGET}/release/timestampvm-rs timestampvm-rs.${TARGET}
             echo "file_name_timestampvm_rs=timestampvm-rs.${TARGET}" >> $GITHUB_OUTPUT
             tar -czvf timestampvm-rs_${TARGET}.tar.gz -C ./target/${TARGET}/release timestampvm-rs
