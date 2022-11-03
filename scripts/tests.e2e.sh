@@ -1,18 +1,52 @@
 #!/usr/bin/env bash
 set -e
 
-# ./scripts/tests.avalanchego-e2e.sh
-# ./scripts/tests.avalanchego-e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
-if ! [[ "$0" =~ scripts/tests.avalanchego-e2e.sh ]]; then
+# ./scripts/tests.e2e.sh 1.9.1
+# ./scripts/tests.e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
+if ! [[ "$0" =~ scripts/tests.e2e.sh ]]; then
   echo "must be run from repository root"
   exit 255
 fi
 
-AVALANCHEGO_PATH=$1
-DEFAULT_SPEC_FLAGS=""
-if [[ ! -z "${AVALANCHEGO_PATH}" ]]; then
-  DEFAULT_SPEC_FLAGS="--network-runner-avalanchego-path=${AVALANCHEGO_PATH}"
+AVALANCHEGO_VERSION=$1
+if [[ -z "${AVALANCHEGO_VERSION}" ]]; then
+  echo "Missing avalanchego version argument!"
+  echo "Usage: ${0} [AVALANCHEGO_VERSION]" >> /dev/stderr
+  exit 255
 fi
+
+echo "Running with:"
+echo AVALANCHEGO_VERSION: ${AVALANCHEGO_VERSION}
+
+############################
+# download avalanchego
+# https://github.com/ava-labs/avalanchego/releases
+GOARCH=$(go env GOARCH)
+GOOS=$(go env GOOS)
+DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/v${AVALANCHEGO_VERSION}/avalanchego-linux-${GOARCH}-v${AVALANCHEGO_VERSION}.tar.gz
+DOWNLOAD_PATH=/tmp/avalanchego.tar.gz
+if [[ ${GOOS} == "darwin" ]]; then
+  DOWNLOAD_URL=https://github.com/ava-labs/avalanchego/releases/download/v${AVALANCHEGO_VERSION}/avalanchego-macos-v${AVALANCHEGO_VERSION}.zip
+  DOWNLOAD_PATH=/tmp/avalanchego.zip
+fi
+
+rm -rf /tmp/avalanchego-v${AVALANCHEGO_VERSION}
+rm -f ${DOWNLOAD_PATH}
+
+echo "downloading avalanchego ${AVALANCHEGO_VERSION} at ${DOWNLOAD_URL}"
+curl -L ${DOWNLOAD_URL} -o ${DOWNLOAD_PATH}
+
+echo "extracting downloaded avalanchego"
+if [[ ${GOOS} == "linux" ]]; then
+  tar xzvf ${DOWNLOAD_PATH} -C /tmp
+elif [[ ${GOOS} == "darwin" ]]; then
+  unzip ${DOWNLOAD_PATH} -d /tmp/avalanchego-build
+  mv /tmp/avalanchego-build/build /tmp/avalanchego-v${AVALANCHEGO_VERSION}
+fi
+find /tmp/avalanchego-v${AVALANCHEGO_VERSION}
+
+AVALANCHEGO_PATH=/tmp/avalanchego-v${AVALANCHEGO_VERSION}/avalanchego
+AVALANCHEGO_PLUGIN_DIR=/tmp/avalanchego-v${AVALANCHEGO_VERSION}/plugins
 
 #################################
 # download avalanche-network-runner
