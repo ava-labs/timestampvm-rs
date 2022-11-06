@@ -1,0 +1,28 @@
+[package]
+name = "timestampvm"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.65"
+publish = true
+description = "Timestamp VM in Rust"
+license = "BSD-3-Clause"
+
+[dependencies]
+avalanche-types = { version = "0.0.124", features = ["rpcchainvm", "codec_base64"] } # https://crates.io/crates/avalanche-types
+chrono = "0.4.22"
+clap = { version = "4.0.18", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
+derivative = "2.2.0"
+env_logger = "0.9.1"
+jsonrpc-core = "18.0.0"
+jsonrpc-core-client = { version = "18.0.0" }
+jsonrpc-derive = "18.0"
+log = "0.4.17"
+semver = "1.0.14"
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = "1.0.87" # https://github.com/serde-rs/json/releases
+serde_with = { version = "2.0.1", features = ["hex"] }
+tokio = { version = "1.21.2", features = ["fs", "rt-multi-thread"] }
+tonic = { version = "0.8.2", features = ["gzip"] }
+
+[dev-dependencies]
+random-manager = "0.0.1"
