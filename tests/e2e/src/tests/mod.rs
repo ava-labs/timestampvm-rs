@@ -50,6 +50,7 @@ async fn e2e() {
             .to_string()
     } else {
         // TODO: use latest once proto's updated
+        // ref. https://github.com/ava-labs/avalanchego/blob/v1.9.0/vms/rpcchainvm/vm.go#L19-L21
         // ref. https://github.com/ava-labs/avalanchego/blob/v1.9.2/version/constants.go#L15-L17
         let (exec_path, plugins_dir) =
             avalanche_installer::avalanchego::download(None, None, Some("v1.9.0".to_string()))
