@@ -1,11 +1,14 @@
 [package]
 name = "timestampvm" # https://crates.io/crates/timestampvm
-version = "0.0.0"
+version = "0.0.1"
 edition = "2021"
 rust-version = "1.65"
 publish = true
 description = "Timestamp VM in Rust"
+documentation = "https://docs.rs/timestampvm"
 license = "BSD-3-Clause"
+repository = "https://github.com/ava-labs/timestampvm-rs"
+readme = "README.md"
 
 [dependencies]
 avalanche-types = { version = "0.0.124", features = ["rpcchainvm", "codec_base64"] } # https://crates.io/crates/avalanche-types
