@@ -11,7 +11,6 @@ See [`tests/e2e`](tests/e2e) for full end-to-end tests.
 
 ## Example
 
-
 ```bash
 ./scripts/build.release.sh
 
