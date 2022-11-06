@@ -127,7 +127,7 @@ jobs:
           command: build
           args: --release --bin timestampvm
       - name: Run e2e tests
-        run: VM_PLUGIN_PATH=target/release/timestampvm scripts/tests.e2e.sh
+        run: VM_PLUGIN_PATH=./target/release/timestampvm scripts/tests.e2e.sh
 
   release:
     name: Release ${{ matrix.job.target }} (${{ matrix.job.os }})
