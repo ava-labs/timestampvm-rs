@@ -81,3 +81,35 @@ pub async fn get_block(
     serde_json::from_slice(&rb)
         .map_err(|e| Error::new(ErrorKind::Other, format!("failed get_block '{}'", e)))
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProposeBlockResponse {
+    pub jsonrpc: String,
+    pub id: u32,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<crate::api::chain_handlers::ProposeBlockResponse>,
+}
+
+pub async fn propose_block(
+    http_rpc: &str,
+    url_path: &str,
+    d: Vec<u8>,
+) -> io::Result<ProposeBlockResponse> {
+    log::info!("propose_block {http_rpc} with {url_path}");
+
+    let mut data = jsonrpc::RequestWithParamsHashMapArray::default();
+    data.method = String::from("propose_block");
+
+    let mut m = HashMap::new();
+    m.insert("data".to_string(), base64::encode(&d));
+
+    let params = vec![m];
+    data.params = Some(params);
+
+    let d = data.encode_json()?;
+    let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
+
+    serde_json::from_slice(&rb)
+        .map_err(|e| Error::new(ErrorKind::Other, format!("failed propose_block '{}'", e)))
+}

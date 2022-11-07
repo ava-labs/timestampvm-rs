@@ -81,11 +81,13 @@ impl Vm {
                 .is_err()
             {
                 log::warn!("dropping message to consensus engine");
-            };
+            } else {
+                log::info!("notified block ready!");
+            }
             return;
         }
 
-        log::error!("consensus engine channel failed to initialized");
+        log::warn!("consensus engine channel failed to initialized");
         return;
     }
 
@@ -160,6 +162,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         _fxs: &[subnet::rpc::common::vm::Fx],
         app_sender: Box<dyn subnet::rpc::common::appsender::AppSender + Send + Sync>,
     ) -> io::Result<()> {
+        log::info!("initializing Vm");
         let mut vm_state = self.state.write().await;
 
         vm_state.ctx = ctx;
@@ -203,6 +206,8 @@ impl subnet::rpc::common::vm::Vm for Vm {
         }
 
         self.mempool = Arc::new(RwLock::new(VecDeque::with_capacity(100)));
+
+        log::info!("successfully initialized Vm");
         Ok(())
     }
 
@@ -257,6 +262,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
     async fn build_block(
         &self,
     ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
+        log::info!("build_block called");
         let mut mempool = self.mempool.write().await;
         if mempool.is_empty() {
             return Err(Error::new(ErrorKind::Other, "no pending block"));
@@ -279,6 +285,8 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
             block.verify().await?;
 
             self.notify_block_ready().await;
+
+            log::info!("successfully built block");
             return Ok(Box::new(block));
         }
 
@@ -305,6 +313,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
 
 #[tonic::async_trait]
 impl subnet::rpc::common::apphandler::AppHandler for Vm {
+    /// Currently, no app-specific messages, so returning Ok.
     async fn app_request(
         &self,
         _node_id: &ids::node::Id,
@@ -312,33 +321,26 @@ impl subnet::rpc::common::apphandler::AppHandler for Vm {
         _deadline: DateTime<Utc>,
         _request: &[u8],
     ) -> io::Result<()> {
-        Err(Error::new(
-            ErrorKind::Unsupported,
-            "app_request not implemented",
-        ))
+        Ok(())
     }
 
+    /// Currently, no app-specific messages, so returning Ok.
     async fn app_request_failed(
         &self,
         _node_id: &ids::node::Id,
         _request_id: u32,
     ) -> io::Result<()> {
-        Err(Error::new(
-            ErrorKind::Unsupported,
-            "app_request_failed not implemented",
-        ))
+        Ok(())
     }
 
+    /// Currently, no app-specific messages, so returning Ok.
     async fn app_response(
         &self,
         _node_id: &ids::node::Id,
         _request_id: u32,
         _response: &[u8],
     ) -> io::Result<()> {
-        Err(Error::new(
-            ErrorKind::Unsupported,
-            "app_response not implemented",
-        ))
+        Ok(())
     }
 
     /// Currently, no app-specific messages, so returning Ok.

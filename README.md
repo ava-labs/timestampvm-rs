@@ -40,36 +40,36 @@ curl -X POST --data '{
 ```
 
 ```bash
-# "DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47" is the blockchain Id
+# "2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "ping",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
 ```
 
 ```bash
 # to get genesis block
-# "DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47" is the blockchain Id
+# "2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "last_accepted",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
 # {"jsonrpc":"2.0","result":{"id":"SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC"},"id":1}
 
-# "DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47" is the blockchain Id
+# "2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "get_block",
     "params" : [{"id":"SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC"}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
 # {"jsonrpc":"2.0","result":{"block":{"data":"0x32596655705939524358","height":0,"parent_id":"11111111111111111111111111111111LpoYY","timestamp":0}},"id":1}
 ```
@@ -84,7 +84,7 @@ curl -X POST --data '{
     "id"     : 1,
     "method" : "propose_block",
     "params" : [{"data":"MQo="}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/DHJJaxVhHrCCTY8MmaTNd3EkLuzDkm9DCr7jrAm8Ypf8kfX47/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
 

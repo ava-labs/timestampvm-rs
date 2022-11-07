@@ -239,6 +239,12 @@ async fn e2e() {
     log::info!("get_block response from {}: {:?}", ep, resp);
     assert_eq!(resp.result.unwrap().block.height(), 0);
 
+    log::info!("propose block");
+    let resp = timestampvm::client::propose_block(&ep, &chain_url_path, vec![0, 1, 2])
+        .await
+        .unwrap();
+    log::info!("propose_block response from {}: {:?}", ep, resp);
+
     if crate::get_network_runner_enable_shutdown() {
         log::info!("shutdown is enabled... stopping...");
         let _resp = cli.stop().await.expect("failed stop");
