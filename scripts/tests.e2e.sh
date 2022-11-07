@@ -62,10 +62,18 @@ RUST_LOG=debug \
 cargo test --all-features --package e2e -- --show-output --nocapture
 
 #################################
-# "e2e.test" already terminates the cluster for "test" mode
-# just in case tests are aborted, manually terminate them again
-echo "network-runner RPC server was running on NETWORK_RUNNER_PID ${NETWORK_RUNNER_PID} as test mode; terminating the process..."
-pkill -P ${NETWORK_RUNNER_PID} || true
-kill -2 ${NETWORK_RUNNER_PID} || true
+if [ -z "$NETWORK_RUNNER_SKIP_SHUTDOWN" ]
+then
+  # "e2e.test" already terminates the cluster for "test" mode
+  # just in case tests are aborted, manually terminate them again
+  echo "network-runner RPC server was running on NETWORK_RUNNER_PID ${NETWORK_RUNNER_PID} as test mode; terminating the process..."
+  pkill -P ${NETWORK_RUNNER_PID} || true
+  kill -2 ${NETWORK_RUNNER_PID} || true
+else 
+  echo "SKIP TEST SHUTDOWN..."
+  echo "RUN FOLLOWING TO CLEAN UP:"
+  echo "pkill -P ${NETWORK_RUNNER_PID}"
+  echo "kill -2 ${NETWORK_RUNNER_PID}"
+fi
 
 echo "TEST SUCCESS"

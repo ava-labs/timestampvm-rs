@@ -232,7 +232,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
             .map_err(|_| Error::from(ErrorKind::InvalidData))?;
 
         let mut handlers = HashMap::new();
-        handlers.insert("/public".to_string(), http_handler);
+        handlers.insert("/static".to_string(), http_handler);
         Ok(handlers)
     }
 
@@ -247,7 +247,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
             .map_err(|_| Error::from(ErrorKind::InvalidData))?;
 
         let mut handlers = HashMap::new();
-        handlers.insert("/public".to_string(), http_handler);
+        handlers.insert("/rpc".to_string(), http_handler);
         Ok(handlers)
     }
 }

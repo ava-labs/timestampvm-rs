@@ -30,13 +30,29 @@ VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
 ./scripts/tests.e2e.sh
 ```
 
+To test timestampvm API manually:
+
 ```bash
-# to test timestampvm API manually
+# "tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc" is the Vm Id
+# e.g., timestampvm vm-id timestampvm
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "ping",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/vm/tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/vm/tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc/static
+
+# {"jsonrpc":"2.0","result":{"success":true},"id":1}
 ```
 
+```bash
+# "MewwRkmrYQjonuB2pQVRfbuuvsH2TYvZrU4ofwKNEv5PrpNi2" is the blockchain Id
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id"     : 1,
+    "method" : "ping",
+    "params" : []
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/MewwRkmrYQjonuB2pQVRfbuuvsH2TYvZrU4ofwKNEv5PrpNi2/rpc
+
+# {"jsonrpc":"2.0","result":{"success":true},"id":1}
+```
