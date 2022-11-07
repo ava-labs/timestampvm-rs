@@ -49,11 +49,10 @@ async fn e2e() {
             .unwrap()
             .to_string()
     } else {
-        // TODO: use latest once proto's updated
-        // ref. https://github.com/ava-labs/avalanchego/blob/v1.9.0/vms/rpcchainvm/vm.go#L19-L21
+        // keep this in sync with "proto" crate
         // ref. https://github.com/ava-labs/avalanchego/blob/v1.9.2/version/constants.go#L15-L17
         let (exec_path, plugins_dir) =
-            avalanche_installer::avalanchego::download(None, None, Some("v1.9.0".to_string()))
+            avalanche_installer::avalanchego::download(None, None, Some("v1.9.2".to_string()))
                 .await
                 .unwrap();
         avalanchego_exec_path = exec_path;
