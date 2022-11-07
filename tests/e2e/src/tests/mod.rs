@@ -175,10 +175,10 @@ async fn e2e() {
     thread::sleep(Duration::from_secs(10));
 
     if crate::get_network_runner_skip_shutdown() {
+        log::info!("skipping stopping the network");
+    } else {
         log::info!("stopping...");
         let _resp = cli.stop().await.expect("failed stop");
         log::info!("successfully stopped network");
-    } else {
-        log::info!("skipping stopping the network")
     }
 }
