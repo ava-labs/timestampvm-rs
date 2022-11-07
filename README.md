@@ -54,7 +54,7 @@ curl -X POST --data '{
 ```
 
 ```bash
-echo hello | base64
+echo hello | base64 | tr -d \\n
 # aGVsbG8K
 
 # "PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi" is the blockchain Id

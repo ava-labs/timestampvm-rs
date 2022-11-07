@@ -341,11 +341,9 @@ impl subnet::rpc::common::apphandler::AppHandler for Vm {
         ))
     }
 
+    /// Currently, no app-specific messages, so returning Ok.
     async fn app_gossip(&self, _node_id: &ids::node::Id, _msg: &[u8]) -> io::Result<()> {
-        Err(Error::new(
-            ErrorKind::Unsupported,
-            "app_gossip not implemented",
-        ))
+        Ok(())
     }
 }
 
