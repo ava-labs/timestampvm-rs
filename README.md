@@ -32,7 +32,7 @@ To test timestampvm API manually:
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
-    "method" : "ping",
+    "method" : "timestampvm.ping",
     "params" : []
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/vm/tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc/static
 

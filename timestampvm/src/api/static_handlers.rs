@@ -4,7 +4,7 @@ use jsonrpc_derive::rpc;
 
 #[rpc]
 pub trait Rpc {
-    #[rpc(name = "ping")]
+    #[rpc(name = "ping", alias("timestampvm.ping"))]
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>>;
 }
 
