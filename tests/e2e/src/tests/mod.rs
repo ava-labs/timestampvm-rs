@@ -171,14 +171,14 @@ async fn e2e() {
     let network_id = resp.result.unwrap().network_id;
     log::info!("network Id: {}", network_id);
 
-    // enough time for txs processing
-    thread::sleep(Duration::from_secs(15));
-
-    // TODO: run tests
+    // TODO: run tests against timestampvm
+    thread::sleep(Duration::from_secs(10));
 
     if crate::get_network_runner_skip_shutdown() {
         log::info!("stopping...");
         let _resp = cli.stop().await.expect("failed stop");
         log::info!("successfully stopped network");
+    } else {
+        log::info!("skipping stopping the network")
     }
 }
