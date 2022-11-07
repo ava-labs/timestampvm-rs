@@ -46,13 +46,52 @@ curl -X POST --data '{
 ```
 
 ```bash
-# "MewwRkmrYQjonuB2pQVRfbuuvsH2TYvZrU4ofwKNEv5PrpNi2" is the blockchain Id
+# "PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "ping",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/MewwRkmrYQjonuB2pQVRfbuuvsH2TYvZrU4ofwKNEv5PrpNi2/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
+```
+
+```bash
+echo hello | base64
+# aGVsbG8K
+
+# "PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi" is the blockchain Id
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id"     : 1,
+    "method" : "propose_block",
+    "params" : [{"data":"aGVsbG8K"}]
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi/rpc
+
+# TODO
+```
+
+```bash
+# "PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi" is the blockchain Id
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id"     : 1,
+    "method" : "last_accepted",
+    "params" : []
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi/rpc
+
+# {"jsonrpc":"2.0","result":{"id":"g25v3qDyAaHfR7kBev8tLUHouSgN5BJuZjy1BYS1oiHd2vres"},"id":1}
+```
+
+```bash
+# "PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi" is the blockchain Id
+curl -X POST --data '{
+    "jsonrpc": "2.0",
+    "id"     : 1,
+    "method" : "get_block",
+    "params" : [{"id":"g25v3qDyAaHfR7kBev8tLUHouSgN5BJuZjy1BYS1oiHd2vres"}]
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/PkBR34m8NkDgkLnRD2Ke5bMaGPm1rNPN78YDnmdsxZhTts1pi/rpc
+
+# TODO
 ```
