@@ -262,14 +262,17 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
     async fn build_block(
         &self,
     ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
-        log::info!("build_block called");
         let mut mempool = self.mempool.write().await;
+
+        log::info!("build_block called for {} mempool", mempool.len());
         if mempool.is_empty() {
             return Err(Error::new(ErrorKind::Other, "no pending block"));
         }
 
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
+            self.notify_block_ready().await;
+
             let prnt_blk = state.get_block(&vm_state.preferred).await?;
             let unix_now = Utc::now().timestamp() as u64;
 
@@ -283,8 +286,6 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
             )?;
             block.set_state(state.clone());
             block.verify().await?;
-
-            self.notify_block_ready().await;
 
             log::info!("successfully built block");
             return Ok(Box::new(block));
