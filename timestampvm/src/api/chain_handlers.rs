@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[rpc]
 pub trait Rpc {
     #[rpc(name = "ping")]
-    fn ping(&self) -> BoxFuture<Result<PingResponse>>;
+    fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>>;
 
     #[rpc(name = "propose_block")]
     fn propose_block(&self, args: ProposeBlockArgs) -> BoxFuture<Result<ProposeBlockResponse>>;
@@ -21,29 +21,24 @@ pub trait Rpc {
     fn get_block(&self, args: GetBlockArgs) -> BoxFuture<Result<GetBlockResponse>>;
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct PingResponse {
-    pub success: bool,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ProposeBlockArgs {
     #[serde(with = "avalanche_types::codec::serde::base64_bytes")]
     pub data: Vec<u8>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ProposeBlockResponse {
     /// TODO: returns Id for later query, using hash + time?
     pub success: bool,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct LastAcceptedResponse {
     pub id: ids::Id,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GetBlockArgs {
     /// TODO: use "ids::Id"
     /// if we use "ids::Id", it fails with:
@@ -51,7 +46,7 @@ pub struct GetBlockArgs {
     pub id: String,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GetBlockResponse {
     pub block: Block,
 }
@@ -67,9 +62,9 @@ impl Service {
 }
 
 impl Rpc for Service {
-    fn ping(&self) -> BoxFuture<Result<PingResponse>> {
+    fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");
-        Box::pin(async move { Ok(PingResponse { success: true }) })
+        Box::pin(async move { Ok(crate::api::PingResponse { success: true }) })
     }
 
     fn propose_block(&self, args: ProposeBlockArgs) -> BoxFuture<Result<ProposeBlockResponse>> {

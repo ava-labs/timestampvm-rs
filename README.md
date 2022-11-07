@@ -35,38 +35,38 @@ curl -X POST --data '{
 ```
 
 ```bash
-# "22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA" is the blockchain Id
+# "mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "ping",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
 ```
 
 ```bash
 # to get genesis block
-# "22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA" is the blockchain Id
+# "mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "last_accepted",
     "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ/rpc
 
-# {"jsonrpc":"2.0","result":{"id":"ucteGvjauToAchS7VhLj61LRsgu6hpr1uqmafxAKM8XJambgN"},"id":1}
+# {"jsonrpc":"2.0","result":{"id":"WFBLfMkNe3gTQ7Vzy3Zo5vBpQD6vq4ebZRRtgt2pVgZxARELB"},"id":1}
 
-# "22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA" is the blockchain Id
+# "mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ" is the blockchain Id
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
     "method" : "get_block",
-    "params" : [{"id":"ucteGvjauToAchS7VhLj61LRsgu6hpr1uqmafxAKM8XJambgN"}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
+    "params" : [{"id":"WFBLfMkNe3gTQ7Vzy3Zo5vBpQD6vq4ebZRRtgt2pVgZxARELB"}]
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ/rpc
 
-# {"jsonrpc":"2.0","result":{"block":{"data":"0x39457835325173437661","height":0,"parent_id":"11111111111111111111111111111111LpoYY","timestamp":0}},"id":1}
+# {"jsonrpc":"2.0","result":{"block":{"data":"0x32596655705939524358","height":0,"parent_id":"11111111111111111111111111111111LpoYY","timestamp":0}},"id":1}
 ```
 
 ```bash
@@ -79,27 +79,8 @@ curl -X POST --data '{
     "id"     : 1,
     "method" : "propose_block",
     "params" : [{"data":"MQo="}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
+}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/mCUYKFaFiGbnibjJ8KXTQE2QQ9RucfPtNSN5jFK8JDVC9qqCQ/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
-```
-
-```bash
-curl -X POST --data '{
-    "jsonrpc": "2.0",
-    "id"     : 1,
-    "method" : "last_accepted",
-    "params" : []
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
-
-# {"jsonrpc":"2.0","result":{"id":"ucteGvjauToAchS7VhLj61LRsgu6hpr1uqmafxAKM8XJambgN"},"id":1}
-
-curl -X POST --data '{
-    "jsonrpc": "2.0",
-    "id"     : 1,
-    "method" : "get_block",
-    "params" : [{"id":"ucteGvjauToAchS7VhLj61LRsgu6hpr1uqmafxAKM8XJambgN"}]
-}' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/22VVUe644h17b68LtbyLd81S4ACXNhWjsrMeikV7DiHHdseCXA/rpc
-
-# TODO
+# TODO: fix
 ```

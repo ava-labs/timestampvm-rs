@@ -18,6 +18,8 @@
 //!
 //! * `block`: Implementation of snowman.Block interface for timestampvm.
 //!
+//! * `client`: Implements client for timestampvm API.
+//!
 //! * `genesis`: Defines timestampvm genesis block.
 //!
 //! * `state`: Manages the virtual machine states.
@@ -26,6 +28,7 @@
 
 pub mod api;
 pub mod block;
+pub mod client;
 pub mod genesis;
 pub mod state;
 pub mod vm;

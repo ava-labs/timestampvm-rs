@@ -1,12 +1,13 @@
 use std::{
     fs,
     path::Path,
+    str::FromStr,
     thread,
     time::{Duration, Instant},
 };
 
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
-use avalanche_types::{client::info as avalanche_sdk_info, subnet};
+use avalanche_types::{client::info as avalanche_sdk_info, ids, subnet};
 
 #[tokio::test]
 async fn e2e() {
@@ -163,6 +164,14 @@ async fn e2e() {
         log::info!("{}: {}", node_name, iv.uri);
         rpc_eps.push(iv.uri.clone());
     }
+    let mut blockchain_id = ids::Id::empty();
+    for (k, v) in cluster_info.custom_chains.iter() {
+        log::info!("custom chain info: {}={:?}", k, v);
+        if v.chain_name == "timestampvm" {
+            blockchain_id = ids::Id::from_str(&v.chain_id).unwrap();
+            break;
+        }
+    }
     log::info!("avalanchego RPC endpoints: {:?}", rpc_eps);
 
     let resp = avalanche_sdk_info::get_network_id(&rpc_eps[0])
@@ -171,8 +180,46 @@ async fn e2e() {
     let network_id = resp.result.unwrap().network_id;
     log::info!("network Id: {}", network_id);
 
-    // TODO: run tests against timestampvm
-    thread::sleep(Duration::from_secs(10));
+    log::info!("ping static handlers");
+    let static_url_path = format!("ext/vm/{}/static", vm_id);
+    for ep in rpc_eps.iter() {
+        let resp = timestampvm::client::ping(ep.as_str(), &static_url_path)
+            .await
+            .unwrap();
+        log::info!("ping response from {}: {:?}", ep, resp);
+        assert!(resp.result.unwrap().success);
+
+        thread::sleep(Duration::from_millis(300));
+    }
+
+    log::info!("ping chain handlers");
+    let chain_url_path = format!("ext/bc/{}/rpc", blockchain_id);
+    for ep in rpc_eps.iter() {
+        let resp = timestampvm::client::ping(ep.as_str(), &chain_url_path)
+            .await
+            .unwrap();
+        log::info!("ping response from {}: {:?}", ep, resp);
+        assert!(resp.result.unwrap().success);
+
+        thread::sleep(Duration::from_millis(300));
+    }
+
+    let ep = rpc_eps[0].clone();
+
+    log::info!("get last_accepted from chain handlers");
+    let resp = timestampvm::client::last_accepted(&ep, &chain_url_path)
+        .await
+        .unwrap();
+    log::info!("last_accepted response from {}: {:?}", ep, resp);
+
+    let blk_id = resp.result.unwrap().id;
+
+    log::info!("getting block {blk_id}");
+    let resp = timestampvm::client::get_block(&ep, &chain_url_path, &blk_id)
+        .await
+        .unwrap();
+    log::info!("get_block response from {}: {:?}", ep, resp);
+    assert_eq!(resp.result.unwrap().block.height(), 0);
 
     if crate::get_network_runner_enable_shutdown() {
         log::info!("shutdown is enabled... stopping...");

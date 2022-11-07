@@ -11,11 +11,12 @@ repository = "https://github.com/ava-labs/timestampvm-rs"
 readme = "../README.md"
 
 [dependencies]
-avalanche-types = { version = "0.0.130", features = ["rpcchainvm", "codec_base64"] } # https://crates.io/crates/avalanche-types
+avalanche-types = { version = "0.0.131", features = ["rpcchainvm", "codec_base64"] } # https://crates.io/crates/avalanche-types
 chrono = "0.4.22"
 clap = { version = "4.0.19", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"
 env_logger = "0.9.1"
+http-manager = { version = "0.0.3" }
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = { version = "18.0.0" }
 jsonrpc-derive = "18.0"

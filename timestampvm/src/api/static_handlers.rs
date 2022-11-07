@@ -1,17 +1,11 @@
 use crate::vm;
 use jsonrpc_core::{BoxFuture, Result};
 use jsonrpc_derive::rpc;
-use serde::{Deserialize, Serialize};
 
 #[rpc]
 pub trait Rpc {
     #[rpc(name = "ping")]
-    fn ping(&self) -> BoxFuture<Result<PingResponse>>;
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct PingResponse {
-    pub success: bool,
+    fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>>;
 }
 
 pub struct Service {
@@ -25,8 +19,8 @@ impl Service {
 }
 
 impl Rpc for Service {
-    fn ping(&self) -> BoxFuture<Result<PingResponse>> {
+    fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");
-        Box::pin(async move { Ok(PingResponse { success: true }) })
+        Box::pin(async move { Ok(crate::api::PingResponse { success: true }) })
     }
 }
