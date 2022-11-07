@@ -115,6 +115,7 @@ async fn e2e() {
 
     log::info!("checking cluster healthiness...");
     let mut ready = false;
+
     let timeout = Duration::from_secs(300);
     let interval = Duration::from_secs(15);
     let start = Instant::now();
@@ -156,7 +157,24 @@ async fn e2e() {
     assert!(ready);
 
     log::info!("checking status...");
-    let status = cli.status().await.expect("failed status");
+    let mut status = cli.status().await.expect("failed status");
+    loop {
+        let elapsed = start.elapsed();
+        if elapsed.gt(&timeout) {
+            break;
+        }
+
+        if let Some(ci) = &status.cluster_info {
+            if ci.custom_chains.len() > 0 {
+                break;
+            }
+        }
+
+        log::info!("retrying checking status...");
+        thread::sleep(interval);
+        status = cli.status().await.expect("failed status");
+    }
+
     assert!(status.cluster_info.is_some());
     let cluster_info = status.cluster_info.unwrap();
     let mut rpc_eps: Vec<String> = Vec::new();
