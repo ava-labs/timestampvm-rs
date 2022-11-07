@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{block::Block, vm};
 use avalanche_types::ids;
 use jsonrpc_core::{BoxFuture, Error, ErrorCode, Result};
@@ -43,7 +45,10 @@ pub struct LastAcceptedResponse {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct GetBlockArgs {
-    pub id: ids::Id,
+    /// TODO: use "ids::Id"
+    /// if we use "ids::Id", it fails with:
+    /// "Invalid params: invalid type: string \"g25v3qDyAaHfR7kBev8tLUHouSgN5BJuZjy1BYS1oiHd2vres\", expected a borrowed string."
+    pub id: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -101,14 +106,16 @@ impl Rpc for Service {
     }
 
     fn get_block(&self, args: GetBlockArgs) -> BoxFuture<Result<GetBlockResponse>> {
-        log::debug!("get_block called");
+        let blk_id = ids::Id::from_str(&args.id).unwrap();
+        log::info!("get_block called for {}", blk_id);
+
         let vm = self.vm.clone();
 
         Box::pin(async move {
             let vm_state = vm.state.read().await;
             if let Some(state) = &vm_state.state {
                 let block = state
-                    .get_block(&args.id)
+                    .get_block(&blk_id)
                     .await
                     .map_err(create_jsonrpc_error)?;
 
