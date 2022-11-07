@@ -71,9 +71,11 @@ then
   kill -2 ${NETWORK_RUNNER_PID} || true
 else 
   echo "SKIP TEST SHUTDOWN..."
+  echo ""
   echo "RUN FOLLOWING TO CLEAN UP:"
-  echo "pkill -P ${NETWORK_RUNNER_PID}"
-  echo "kill -2 ${NETWORK_RUNNER_PID}"
+  echo "pkill -P ${NETWORK_RUNNER_PID} || true"
+  echo "kill -2 ${NETWORK_RUNNER_PID} || true"
+  echo ""
 fi
 
 echo "TEST SUCCESS"
