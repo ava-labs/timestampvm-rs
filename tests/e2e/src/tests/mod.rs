@@ -174,11 +174,11 @@ async fn e2e() {
     // TODO: run tests against timestampvm
     thread::sleep(Duration::from_secs(10));
 
-    if crate::get_network_runner_skip_shutdown() {
-        log::info!("skipping stopping the network");
-    } else {
-        log::info!("stopping...");
+    if crate::get_network_runner_enable_shutdown() {
+        log::info!("shutdown is enabled... stopping...");
         let _resp = cli.stop().await.expect("failed stop");
         log::info!("successfully stopped network");
+    } else {
+        log::info!("skipped network shutdown...");
     }
 }

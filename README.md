@@ -7,25 +7,21 @@
 
 Timestamp VM in Rust
 
-See [`tests/e2e`](tests/e2e) for full end-to-end tests.
+See [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
 
 ## Example
 
 ```bash
-# to build the timestampvm plugin
-./scripts/build.release.sh
-
-# to run e2e tests
-VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
+# build the timestampvm plugin, run e2e tests, and keep the network running
+./scripts/build.release.sh \
+&& VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
 ./scripts/tests.e2e.sh
 ```
 
 ```bash
-# to build the timestampvm plugin
-./scripts/build.release.sh
-
-# to keep the network running after tests
-NETWORK_RUNNER_SKIP_SHUTDOWN=1 \
+# shut down network running after tests
+./scripts/build.release.sh \
+&& NETWORK_RUNNER_SKIP_SHUTDOWN=1 \
 VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
 ./scripts/tests.e2e.sh
 ```

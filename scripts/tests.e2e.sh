@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-# to build timestampvm binary
+# build timestampvm binary
 # ./scripts/build.release.sh
 #
-# to download from github
+# download from github, keep network running
 # VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm ./scripts/tests.e2e.sh
 #
-# to use custom avalanchego binary
+# download from github, shut down network
+# NETWORK_RUNNER_ENABLE_SHUTDOWN=1 VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm ./scripts/tests.e2e.sh
+#
+# use custom avalanchego binary
 # VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm ./scripts/tests.e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
 #
-# to download from github and skip network shutdown
-# NETWORK_RUNNER_SKIP_SHUTDOWN=1 VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm ./scripts/tests.e2e.sh
 if ! [[ "$0" =~ scripts/tests.e2e.sh ]]; then
   echo "must be run from repository root"
   exit 255
@@ -62,20 +63,24 @@ RUST_LOG=debug \
 cargo test --all-features --package e2e -- --show-output --nocapture
 
 #################################
-if [ -z "$NETWORK_RUNNER_SKIP_SHUTDOWN" ]
+echo ""
+echo ""
+if [ -z "$NETWORK_RUNNER_ENABLE_SHUTDOWN" ]
 then
-  # "e2e.test" already terminates the cluster for "test" mode
-  # just in case tests are aborted, manually terminate them again
-  echo "network-runner RPC server was running on NETWORK_RUNNER_PID ${NETWORK_RUNNER_PID} as test mode; terminating the process..."
-  pkill -P ${NETWORK_RUNNER_PID} || true
-  kill -2 ${NETWORK_RUNNER_PID} || true
-else 
-  echo "SKIP TEST SHUTDOWN..."
+  echo "SKIPPED SHUTDOWN..."
   echo ""
   echo "RUN FOLLOWING TO CLEAN UP:"
   echo "pkill -P ${NETWORK_RUNNER_PID} || true"
   echo "kill -2 ${NETWORK_RUNNER_PID} || true"
   echo ""
+else 
+  echo "SHUTTING DOWN..."
+  echo ""
+  # "e2e.test" already terminates the cluster for "test" mode
+  # just in case tests are aborted, manually terminate them again
+  echo "network-runner RPC server was running on NETWORK_RUNNER_PID ${NETWORK_RUNNER_PID} as test mode; terminating the process..."
+  pkill -P ${NETWORK_RUNNER_PID} || true
+  kill -2 ${NETWORK_RUNNER_PID} || true
 fi
 
 echo "TEST SUCCESS"
