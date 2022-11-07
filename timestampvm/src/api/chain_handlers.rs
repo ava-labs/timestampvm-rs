@@ -8,16 +8,16 @@ use serde::{Deserialize, Serialize};
 
 #[rpc]
 pub trait Rpc {
-    #[rpc(name = "ping")]
+    #[rpc(name = "ping", alias("timestampvm.ping"))]
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>>;
 
-    #[rpc(name = "propose_block")]
+    #[rpc(name = "proposeBlock", alias("timestampvm.proposeBlock"))]
     fn propose_block(&self, args: ProposeBlockArgs) -> BoxFuture<Result<ProposeBlockResponse>>;
 
-    #[rpc(name = "last_accepted")]
+    #[rpc(name = "lastAccepted", alias("timestampvm.lastAccepted"))]
     fn last_accepted(&self) -> BoxFuture<Result<LastAcceptedResponse>>;
 
-    #[rpc(name = "get_block")]
+    #[rpc(name = "getBlock", alias("timestampvm.getBlock"))]
     fn get_block(&self, args: GetBlockArgs) -> BoxFuture<Result<GetBlockResponse>>;
 }
 

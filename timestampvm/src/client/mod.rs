@@ -19,7 +19,7 @@ pub async fn ping(http_rpc: &str, url_path: &str) -> io::Result<PingResponse> {
     log::info!("ping {http_rpc} with {url_path}");
 
     let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("ping");
+    data.method = String::from("timestampvm.ping");
 
     let d = data.encode_json()?;
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
@@ -41,7 +41,7 @@ pub async fn last_accepted(http_rpc: &str, url_path: &str) -> io::Result<LastAcc
     log::info!("last_accepted {http_rpc} with {url_path}");
 
     let mut data = jsonrpc::RequestWithParamsArray::default();
-    data.method = String::from("last_accepted");
+    data.method = String::from("timestampvm.lastAccepted");
 
     let d = data.encode_json()?;
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
@@ -67,7 +67,7 @@ pub async fn get_block(
     log::info!("get_block {http_rpc} with {url_path}");
 
     let mut data = jsonrpc::RequestWithParamsHashMapArray::default();
-    data.method = String::from("get_block");
+    data.method = String::from("timestampvm.getBlock");
 
     let mut m = HashMap::new();
     m.insert("id".to_string(), id.to_string());
@@ -99,7 +99,7 @@ pub async fn propose_block(
     log::info!("propose_block {http_rpc} with {url_path}");
 
     let mut data = jsonrpc::RequestWithParamsHashMapArray::default();
-    data.method = String::from("propose_block");
+    data.method = String::from("timestampvm.proposeBlock");
 
     let mut m = HashMap::new();
     m.insert("data".to_string(), base64::encode(&d));

@@ -44,7 +44,7 @@ curl -X POST --data '{
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
-    "method" : "ping",
+    "method" : "timestampvm.ping",
     "params" : []
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
@@ -57,7 +57,7 @@ curl -X POST --data '{
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
-    "method" : "last_accepted",
+    "method" : "timestampvm.lastAccepted",
     "params" : []
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
@@ -67,7 +67,7 @@ curl -X POST --data '{
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
-    "method" : "get_block",
+    "method" : "timestampvm.getBlock",
     "params" : [{"id":"SDfFUzkdzWZbJ6YMysPPNEF5dWLp9q35mEMaLa8Ha2w9aMKoC"}]
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
@@ -82,7 +82,7 @@ echo 1 | base64 | tr -d \\n
 curl -X POST --data '{
     "jsonrpc": "2.0",
     "id"     : 1,
-    "method" : "propose_block",
+    "method" : "timestampvm.proposeBlock",
     "params" : [{"data":"MQo="}]
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
