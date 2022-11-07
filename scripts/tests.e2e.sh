@@ -59,6 +59,8 @@ sleep 5
 #################################
 echo "running e2e tests"
 NETWORK_RUNNER_GRPC_ENDPOINT=http://127.0.0.1:12342 \
+AVALANCHEGO_PATH=${AVALANCHEGO_PATH} \
+VM_PLUGIN_PATH=${VM_PLUGIN_PATH} \
 RUST_LOG=debug \
 cargo test --all-features --package e2e -- --show-output --nocapture
 
