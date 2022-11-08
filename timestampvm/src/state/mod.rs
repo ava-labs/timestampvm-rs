@@ -1,3 +1,5 @@
+//! Manages the virtual machine states.
+
 use std::{
     collections::HashMap,
     io::{self, Error, ErrorKind},

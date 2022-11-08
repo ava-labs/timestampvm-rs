@@ -1,3 +1,5 @@
+//! Implements client for timestampvm API.
+
 use std::{
     collections::HashMap,
     io::{self, Error, ErrorKind},

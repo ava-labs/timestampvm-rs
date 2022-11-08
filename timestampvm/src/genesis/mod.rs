@@ -1,3 +1,5 @@
+//! Defines timestampvm genesis block.
+
 use std::{
     fmt,
     fs::{self, File},
