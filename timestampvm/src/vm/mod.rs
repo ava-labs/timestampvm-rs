@@ -177,6 +177,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         let current = db_manager.current().await?;
         let state = state::State {
             db: Arc::new(RwLock::new(current.db)),
+            verified_blocks: Arc::new(RwLock::new(HashMap::new())),
         };
         vm_state.state = Some(state.clone());
 
@@ -273,6 +274,8 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
         if let Some(state) = &vm_state.state {
             self.notify_block_ready().await;
 
+            // "state" must have preferred block in cache/verified_block
+            // otherwise, not found error from rpcchainvm database
             let prnt_blk = state.get_block(&vm_state.preferred).await?;
             let unix_now = Utc::now().timestamp() as u64;
 

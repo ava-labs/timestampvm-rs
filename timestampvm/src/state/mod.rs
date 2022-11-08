@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     io::{self, Error, ErrorKind},
     sync::Arc,
 };
@@ -9,16 +10,20 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 /// Represents persistent block and chain states for Vm.
-/// TODO: use cache for optimization
 #[derive(Clone)]
 pub struct State {
     pub db: Arc<RwLock<Box<dyn subnet::rpc::database::Database + Send + Sync>>>,
+
+    /// Maps block Id to Block.
+    /// Each element is verified but not yet accepted/rejected (e.g., preferred).
+    pub verified_blocks: Arc<RwLock<HashMap<ids::Id, Block>>>,
 }
 
 impl Default for State {
     fn default() -> State {
         Self {
             db: Arc::new(RwLock::new(subnet::rpc::database::memdb::Database::new())),
+            verified_blocks: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
@@ -101,6 +106,24 @@ impl State {
         }
     }
 
+    pub async fn add_verified(&mut self, block: &Block) {
+        let blk_id = block.id();
+        log::info!("verified added {blk_id}");
+
+        let mut verified_blocks = self.verified_blocks.write().await;
+        verified_blocks.insert(blk_id, block.clone());
+    }
+
+    pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
+        let mut verified_blocks = self.verified_blocks.write().await;
+        verified_blocks.remove(blk_id);
+    }
+
+    pub async fn has_verified(&self, blk_id: &ids::Id) -> bool {
+        let verified_blocks = self.verified_blocks.read().await;
+        verified_blocks.contains_key(blk_id)
+    }
+
     pub async fn put_block(&mut self, block: &Block) -> io::Result<()> {
         let blk_id = block.id();
         let blk_bytes = block.to_slice()?;
@@ -119,6 +142,11 @@ impl State {
     }
 
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
+        let verified_blocks = self.verified_blocks.read().await;
+        if let Some(b) = verified_blocks.get(blk_id) {
+            return Ok(b.clone());
+        }
+
         let db = self.db.read().await;
 
         let blk_status_bytes = db.get(&block_with_status_key(blk_id)).await?;

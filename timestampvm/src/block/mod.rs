@@ -159,6 +159,7 @@ impl Block {
                 "block {} has an empty parent Id since it's a genesis block -- skipping verify",
                 self.id
             );
+            self.state.add_verified(&self.clone()).await;
             return Ok(());
         }
 
@@ -192,6 +193,7 @@ impl Block {
             ));
         }
 
+        self.state.add_verified(&self.clone()).await;
         return Ok(());
     }
 
@@ -200,14 +202,20 @@ impl Block {
 
         // only decided blocks are persistent -- no reorg
         self.state.put_block(&self.clone()).await?;
-        self.state.set_last_accepted_block(&self.id()).await
+        self.state.set_last_accepted_block(&self.id()).await?;
+
+        self.state.remove_verified(&self.id()).await;
+        Ok(())
     }
 
     pub async fn reject(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Rejected);
 
         // only decided blocks are persistent -- no reorg
-        self.state.put_block(&self.clone()).await
+        self.state.put_block(&self.clone()).await?;
+
+        self.state.remove_verified(&self.id()).await;
+        Ok(())
     }
 }
 
@@ -254,9 +262,12 @@ async fn test_block() {
     genesis_blk.set_state(state.clone());
 
     genesis_blk.verify().await.unwrap();
+    assert!(state.has_verified(&genesis_blk.id()).await);
+
     genesis_blk.accept().await.unwrap();
     assert_eq!(genesis_blk.status, choices::status::Status::Accepted);
     assert!(state.has_last_accepted_block().await.unwrap());
+    assert!(!state.has_verified(&genesis_blk.id()).await); // removed after acceptance
 
     let last_accepted_blk_id = state.get_last_accepted_block_id().await.unwrap();
     assert_eq!(last_accepted_blk_id, genesis_blk.id());
@@ -276,8 +287,11 @@ async fn test_block() {
     blk1.set_state(state.clone());
 
     blk1.verify().await.unwrap();
+    assert!(state.has_verified(&blk1.id()).await);
+
     blk1.accept().await.unwrap();
     assert_eq!(blk1.status, choices::status::Status::Accepted);
+    assert!(!state.has_verified(&blk1.id()).await); // removed after acceptance
 
     let last_accepted_blk_id = state.get_last_accepted_block_id().await.unwrap();
     assert_eq!(last_accepted_blk_id, blk1.id());
@@ -297,8 +311,11 @@ async fn test_block() {
     blk2.set_state(state.clone());
 
     blk2.verify().await.unwrap();
+    assert!(state.has_verified(&blk2.id()).await);
+
     blk2.reject().await.unwrap();
     assert_eq!(blk2.status, choices::status::Status::Rejected);
+    assert!(!state.has_verified(&blk2.id()).await); // removed after acceptance
 
     // "blk2" is rejected, so last accepted block must be "blk1"
     let last_accepted_blk_id = state.get_last_accepted_block_id().await.unwrap();
