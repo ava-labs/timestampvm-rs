@@ -48,7 +48,6 @@
 //!
 //!     avalanche_types::rpcchainvm::plugin::serve(vm_server, stop_ch_rx).await
 //! }
-//! # }
 //! ```
 
 pub mod api;
