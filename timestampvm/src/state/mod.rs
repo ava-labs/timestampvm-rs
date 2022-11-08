@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     io::{self, Error, ErrorKind},
     sync::Arc,
 };
@@ -13,12 +14,14 @@ use tokio::sync::RwLock;
 #[derive(Clone)]
 pub struct State {
     pub db: Arc<RwLock<Box<dyn subnet::rpc::database::Database + Send + Sync>>>,
+    pub verified_blocks: Arc<RwLock<HashMap<ids::Id, Block>>>,
 }
 
 impl Default for State {
     fn default() -> State {
         Self {
             db: Arc::new(RwLock::new(subnet::rpc::database::memdb::Database::new())),
+            verified_blocks: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
@@ -99,6 +102,18 @@ impl State {
                 return Err(e);
             }
         }
+    }
+
+    pub async fn add_verified(&mut self, block: &Block) {
+        let blk_id = block.id();
+
+        let mut verified_blocks = self.verified_blocks.write().await;
+        verified_blocks.insert(blk_id, block.clone());
+    }
+
+    pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
+        let mut verified_blocks = self.verified_blocks.write().await;
+        verified_blocks.remove(blk_id);
     }
 
     pub async fn put_block(&mut self, block: &Block) -> io::Result<()> {

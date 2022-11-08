@@ -177,6 +177,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         let current = db_manager.current().await?;
         let state = state::State {
             db: Arc::new(RwLock::new(current.db)),
+            verified_blocks: Arc::new(RwLock::new(HashMap::new())),
         };
         vm_state.state = Some(state.clone());
 
