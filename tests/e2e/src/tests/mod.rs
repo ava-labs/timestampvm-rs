@@ -237,7 +237,8 @@ async fn e2e() {
         .await
         .unwrap();
     log::info!("get_block response from {}: {:?}", ep, resp);
-    assert_eq!(resp.result.unwrap().block.height(), 0);
+    let height0 = resp.result.unwrap().block.height();
+    assert_eq!(height0, 0);
 
     log::info!("propose block");
     let resp = timestampvm::client::propose_block(&ep, &chain_url_path, vec![0, 1, 2])
@@ -253,6 +254,16 @@ async fn e2e() {
         .await
         .unwrap();
     log::info!("last_accepted response from {}: {:?}", ep, resp);
+
+    let blk_id = resp.result.unwrap().id;
+
+    log::info!("getting block {blk_id}");
+    let resp = timestampvm::client::get_block(&ep, &chain_url_path, &blk_id)
+        .await
+        .unwrap();
+    log::info!("get_block response from {}: {:?}", ep, resp);
+    let height1 = resp.result.unwrap().block.height();
+    assert_eq!(height0 + 1, height1);
 
     if crate::get_network_runner_enable_shutdown() {
         log::info!("shutdown is enabled... stopping...");
