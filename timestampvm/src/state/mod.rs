@@ -10,10 +10,12 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 /// Represents persistent block and chain states for Vm.
-/// TODO: use cache for optimization
 #[derive(Clone)]
 pub struct State {
     pub db: Arc<RwLock<Box<dyn subnet::rpc::database::Database + Send + Sync>>>,
+
+    /// Maps block Id to Block.
+    /// Each element is verified but not yet accepted/rejected (e.g., preferred).
     pub verified_blocks: Arc<RwLock<HashMap<ids::Id, Block>>>,
 }
 
@@ -106,6 +108,7 @@ impl State {
 
     pub async fn add_verified(&mut self, block: &Block) {
         let blk_id = block.id();
+        log::info!("verified added {blk_id}");
 
         let mut verified_blocks = self.verified_blocks.write().await;
         verified_blocks.insert(blk_id, block.clone());
@@ -114,6 +117,11 @@ impl State {
     pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
         let mut verified_blocks = self.verified_blocks.write().await;
         verified_blocks.remove(blk_id);
+    }
+
+    pub async fn has_verified(&self, blk_id: &ids::Id) -> bool {
+        let verified_blocks = self.verified_blocks.read().await;
+        verified_blocks.contains_key(blk_id)
     }
 
     pub async fn put_block(&mut self, block: &Block) -> io::Result<()> {
