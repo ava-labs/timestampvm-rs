@@ -5,7 +5,7 @@
 
 # timestampvm-rs
 
-Timestamp VM in Rust
+`timestampvm-rs` is a virtual machine that can build blocks from a user-provided arbitrary data. It provides a minimal implementation of an Avalanche custom virtual machine (VM) in Rust using the Avalanche [Rust SDK](https://github.com/ava-labs/avalanche-types-rs).
 
 See [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
 
@@ -88,3 +88,13 @@ curl -X POST --data '{
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
 ```
+
+## Avalanche Custom Virtual Machine in Subnet
+
+The project presents how to build a custom VM in Rust meeting the following requirements:
+
+1. The custom VM plug-in must be compiled to a binary, so that `avalanchego` can launch it as a sub-process plug-in.
+2. The VM binary path is named in VM ID, hash type with 32 bytes (256 bits) size.
+3. The VM binary must implement snowman "block.ChainVM" interface, to be registered via "rpcchainvm.Serve".
+4. The VM binary must implement VM-specific services, served via URL path of the blockchain ID.
+5. Optionally, the binary implements VM-specific static handlers, served via URL path of the VM ID.
