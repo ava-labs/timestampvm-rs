@@ -14,9 +14,9 @@ use tokio::sync::{mpsc::Sender, RwLock};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Represents Vm-specific states.
-/// Defined in a separate struct, for interior mutability in "Vm".
-/// To be protected with "Arc" and "RwLock".
+/// Represents VM-specific states.
+/// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
+/// To be protected with `Arc` and `RwLock`.
 pub struct VmState {
     pub ctx: Option<subnet::rpc::context::Context>,
     pub version: Version,
@@ -48,7 +48,7 @@ impl Default for VmState {
     }
 }
 
-/// Implements block.ChainVM interface.
+/// Implements [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface.
 #[derive(Clone)]
 pub struct Vm {
     pub state: Arc<RwLock<VmState>>,

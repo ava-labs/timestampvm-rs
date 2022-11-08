@@ -11,6 +11,7 @@ use derivative::{self, Derivative};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+/// Represents a block, specific to this Vm.
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Derivative)]
 #[derivative(Debug, PartialEq, Eq)]

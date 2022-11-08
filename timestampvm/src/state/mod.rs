@@ -11,7 +11,7 @@ use avalanche_types::{choices, ids, subnet};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-/// Represents persistent block and chain states for Vm.
+/// Manages block and chain states for this Vm, both in-memory and persistent.
 #[derive(Clone)]
 pub struct State {
     pub db: Arc<RwLock<Box<dyn subnet::rpc::database::Database + Send + Sync>>>,
@@ -44,6 +44,7 @@ fn block_with_status_key(blk_id: &ids::Id) -> Vec<u8> {
     k
 }
 
+/// Wraps [`Block`](Block) and its status.
 #[derive(Serialize, Deserialize, Clone)]
 struct BlockWithStatus {
     block_bytes: Vec<u8>,

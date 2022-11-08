@@ -9,6 +9,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+/// Represents the genesis data specific to this VM.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct Genesis {
     pub data: String,

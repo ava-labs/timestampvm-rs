@@ -1,3 +1,6 @@
+//! Implements static handlers specific to this VM.
+//! To be served via `[HOST]/ext/vm/[VM ID]/static`.
+
 use crate::vm;
 use jsonrpc_core::{BoxFuture, Result};
 use jsonrpc_derive::rpc;

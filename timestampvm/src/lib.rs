@@ -16,7 +16,7 @@
 //! * [`api`](https://docs.rs/timestampvm/latest/timestampvm/api): Implementation of timestampvm APIs.
 //! * [`bin/timestampvm`](https://github.com/ava-labs/timestampvm-rs/tree/main/timestampvm/src/bin/timestampvm): Command-line interface, and plugin server.
 //! * [`block`](https://docs.rs/timestampvm/latest/timestampvm/block): Implementation of [`snowman.Block`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/consensus/snowman#Block) interface for timestampvm.
-//! * [`client`](https://docs.rs/timestampvm/latest/timestampvm/client): Implements client for timestampvm API.
+//! * [`client`](https://docs.rs/timestampvm/latest/timestampvm/client): Implements client for timestampvm APIs.
 //! * [`genesis`](https://docs.rs/timestampvm/latest/timestampvm/genesis): Defines timestampvm genesis block.
 //! * [`state`](https://docs.rs/timestampvm/latest/timestampvm/state): Manages the virtual machine states.
 //! * [`vm`](https://docs.rs/timestampvm/latest/timestampvm/vm): Implementation of [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface for timestampvm.

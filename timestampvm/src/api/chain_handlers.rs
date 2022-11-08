@@ -1,3 +1,6 @@
+//! Implements chain/VM specific handlers.
+//! To be served via `[HOST]/ext/bc/[CHAIN ID]/rpc`.
+
 use std::str::FromStr;
 
 use crate::{block::Block, vm};

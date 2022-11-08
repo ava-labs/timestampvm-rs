@@ -1,4 +1,4 @@
-//! Implements client for timestampvm API.
+//! Implements client for timestampvm APIs.
 
 use std::{
     collections::HashMap,
