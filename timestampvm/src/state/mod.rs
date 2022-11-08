@@ -142,6 +142,11 @@ impl State {
     }
 
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
+        let verified_blocks = self.verified_blocks.read().await;
+        if let Some(b) = verified_blocks.get(blk_id) {
+            return Ok(b.clone());
+        }
+
         let db = self.db.read().await;
 
         let blk_status_bytes = db.get(&block_with_status_key(blk_id)).await?;
