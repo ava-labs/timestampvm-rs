@@ -87,6 +87,4 @@ curl -X POST --data '{
 }' -H 'content-type:application/json;' 127.0.0.1:9650/ext/bc/2wb1UXxAstB8ywwv4rU2rFCjLgXnhT44hbLPbwpQoGvFb2wRR7/rpc
 
 # {"jsonrpc":"2.0","result":{"success":true},"id":1}
-
-# TODO: fix
 ```
