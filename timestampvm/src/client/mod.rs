@@ -16,6 +16,10 @@ pub struct PingResponse {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::api::PingResponse>,
+
+    /// Returns non-empty if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<APIError>,
 }
 
 /// Ping the VM.
@@ -40,6 +44,10 @@ pub struct LastAcceptedResponse {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::api::chain_handlers::LastAcceptedResponse>,
+
+    /// Returns non-empty if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<APIError>,
 }
 
 /// Requests for the last accepted block Id.
@@ -64,8 +72,13 @@ pub struct GetBlockResponse {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::api::chain_handlers::GetBlockResponse>,
+
+    /// Returns non-empty if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<APIError>,
 }
 
+/// Fetches the block for the corresponding block Id (if any).
 pub async fn get_block(
     http_rpc: &str,
     url_path: &str,
@@ -98,16 +111,10 @@ pub struct ProposeBlockResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::api::chain_handlers::ProposeBlockResponse>,
 
-    /// Returns non-empty error string, if any.
+    /// Returns non-empty if any.
     /// e.g., "error":{"code":-32603,"message":"data 1048586-byte exceeds the limit 1048576-byte"}
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<ProposeBlockResultError>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProposeBlockResultError {
-    pub code: i32,
-    pub message: String,
+    pub error: Option<APIError>,
 }
 
 /// Proposes arbitrary data.
@@ -132,4 +139,11 @@ pub async fn propose_block(
 
     serde_json::from_slice(&rb)
         .map_err(|e| Error::new(ErrorKind::Other, format!("failed propose_block '{}'", e)))
+}
+
+/// Represents the error (if any) for APIs.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct APIError {
+    pub code: i32,
+    pub message: String,
 }

@@ -12,15 +12,19 @@ use serde::{Deserialize, Serialize};
 /// Defines RPCs specific to the chain.
 #[rpc]
 pub trait Rpc {
+    /// Pings the VM.
     #[rpc(name = "ping", alias("timestampvm.ping"))]
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>>;
 
+    /// Proposes the arbitrary data.
     #[rpc(name = "proposeBlock", alias("timestampvm.proposeBlock"))]
     fn propose_block(&self, args: ProposeBlockArgs) -> BoxFuture<Result<ProposeBlockResponse>>;
 
+    /// Fetches the last accepted block.
     #[rpc(name = "lastAccepted", alias("timestampvm.lastAccepted"))]
     fn last_accepted(&self) -> BoxFuture<Result<LastAcceptedResponse>>;
 
+    /// Fetches the block.
     #[rpc(name = "getBlock", alias("timestampvm.getBlock"))]
     fn get_block(&self, args: GetBlockArgs) -> BoxFuture<Result<GetBlockResponse>>;
 }

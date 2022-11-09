@@ -26,27 +26,15 @@
 //! A simple example that prepares an HTTP/1 connection over a Tokio TCP stream.
 //!
 //! ```no_run
-//! use std::io;
-//!
+//! use avalanche_types::subnet;
 //! use timestampvm::vm;
-//! use tokio::sync::broadcast::{Receiver, Sender};
+//! use tokio::sync::broadcast::{self, Receiver, Sender};
 //!
 //! #[tokio::main]
-//! async fn main() -> io::Result<()> {
-//!     // ref. https://github.com/env-logger-rs/env_logger/issues/47
-//!     env_logger::init_from_env(
-//!         env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
-//!     );
-//!
-//!     log::info!("starting timestampvm");
-//!
-//!     let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) =
-//!         tokio::sync::broadcast::channel(1);
-//!
-//!     let vm_server =
-//!         avalanche_types::subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
-//!
-//!     avalanche_types::subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
+//! async fn main() -> std::io::Result<()> {
+//!     let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) = broadcast::channel(1);
+//!     let vm_server = subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
+//!     subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
 //! }
 //! ```
 
