@@ -264,7 +264,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
 impl subnet::rpc::snowman::block::ChainVm for Vm {
     async fn build_block(
         &self,
-    ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
         let mut mempool = self.mempool.write().await;
 
         log::info!("build_block called for {} mempool", mempool.len());
@@ -309,7 +309,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
 
     async fn issue_tx(
         &self,
-    ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
         Err(Error::new(
             ErrorKind::Unsupported,
             "issue_tx not implemented",
@@ -380,7 +380,7 @@ impl subnet::rpc::snowman::block::Getter for Vm {
     async fn get_block(
         &self,
         blk_id: ids::Id,
-    ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let block = state.get_block(&blk_id).await?;
@@ -396,7 +396,7 @@ impl subnet::rpc::snowman::block::Parser for Vm {
     async fn parse_block(
         &self,
         bytes: &[u8],
-    ) -> io::Result<Box<dyn subnet::rpc::concensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let mut new_block = Block::from_slice(bytes)?;

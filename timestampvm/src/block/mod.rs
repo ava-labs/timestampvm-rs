@@ -344,7 +344,7 @@ async fn test_block() {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::concensus::snowman::Block for Block {
+impl subnet::rpc::consensus::snowman::Block for Block {
     async fn bytes(&self) -> &[u8] {
         return self.bytes.as_ref();
     }
@@ -371,7 +371,7 @@ impl subnet::rpc::concensus::snowman::Block for Block {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::concensus::snowman::Decidable for Block {
+impl subnet::rpc::consensus::snowman::Decidable for Block {
     /// Implements "snowman.Block.choices.Decidable"
     async fn status(&self) -> choices::status::Status {
         self.status.clone()
@@ -391,7 +391,7 @@ impl subnet::rpc::concensus::snowman::Decidable for Block {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::concensus::snowman::Initializer for Block {
+impl subnet::rpc::consensus::snowman::Initializer for Block {
     async fn init(&mut self, bytes: &[u8], status: choices::status::Status) -> io::Result<()> {
         *self = Block::from_slice(bytes)?;
         self.status = status;
@@ -401,7 +401,7 @@ impl subnet::rpc::concensus::snowman::Initializer for Block {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::concensus::snowman::StatusWriter for Block {
+impl subnet::rpc::consensus::snowman::StatusWriter for Block {
     async fn set_status(&mut self, status: choices::status::Status) {
         self.set_status(status)
     }
