@@ -127,7 +127,7 @@ jobs:
           command: build
           args: --release --bin timestampvm
       - name: Run e2e tests
-        run: NETWORK_RUNNER_SKIP_SHUTDOWN=1 VM_PLUGIN_PATH=/home/runner/work/timestampvm-rs/timestampvm-rs/target/release/timestampvm scripts/tests.e2e.sh
+        run: VM_PLUGIN_PATH=/home/runner/work/timestampvm-rs/timestampvm-rs/target/release/timestampvm scripts/tests.e2e.sh
 
   release:
     name: Release ${{ matrix.job.target }} (${{ matrix.job.os }})

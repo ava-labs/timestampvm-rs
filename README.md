@@ -15,24 +15,45 @@ Currently, Avalanche custom VM requires the following:
 4. Implements VM-specific services that can be served via URL path of the blockchain ID.
 5. (Optionally) Implements VM-specific static handlers that can be served via URL path of the VM ID.
 
-See [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
+For example, the timestamp VM can be run as follows:
+
+```rust
+use std::io;
+
+use timestampvm::vm;
+use tokio::sync::broadcast::{self, Receiver, Sender};
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) = broadcast::channel(1);
+
+    let vm_server =
+        avalanche_types::subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
+
+    avalanche_types::subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
+}
+```
+
+See [`bin/timestampvm`](timestampvm/src/bin/timestampvm/main.rs) for plugin implementation and [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
 
 ## Example
 
 ```bash
-# to build the timestampvm plugin, run e2e tests, and keep the network running
-# add NETWORK_RUNNER_SKIP_SHUTDOWN=1 to tests.e2e.sh to shut down network afterwards
+# build the timestampvm plugin, run e2e tests, and keep the network running
 ./scripts/build.release.sh \
 && VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
 ./scripts/tests.e2e.sh
 
-# or specify the custom avalanchego binary
+# or, specify the custom avalanchego binary
 ./scripts/build.release.sh \
 && VM_PLUGIN_PATH=$(pwd)/target/release/timestampvm \
 ./scripts/tests.e2e.sh ~/go/src/github.com/ava-labs/avalanchego/build/avalanchego
+
+# (optional) set NETWORK_RUNNER_ENABLE_SHUTDOWN=1 in "tests.e2e.sh"
+# to shut down the network afterwards
 ```
 
-To test timestampvm API manually:
+To test `timestampvm` APIs, try the following commands:
 
 ```bash
 # "tGas3T58KzdjcJ2iKSyiYsWiqYctRXaPTqBCA11BqEkNg8kPc" is the Vm Id
