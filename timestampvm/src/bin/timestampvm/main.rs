@@ -3,9 +3,10 @@ pub mod vm_id;
 
 use std::io;
 
+use avalanche_types::subnet;
 use clap::{crate_version, Command};
 use timestampvm::vm;
-use tokio::sync::broadcast::{Receiver, Sender};
+use tokio::sync::broadcast::{self, Receiver, Sender};
 
 pub const APP_NAME: &str = "timestampvm";
 
@@ -33,7 +34,7 @@ async fn main() -> io::Result<()> {
 
         Some((vm_id::NAME, sub_matches)) => {
             let vm_name = sub_matches.get_one::<String>("VM_NAME").expect("required");
-            let id = avalanche_types::subnet::vm_name_to_id(vm_name)?;
+            let id = subnet::vm_name_to_id(vm_name)?;
             println!("{id}");
 
             Ok(())
@@ -42,13 +43,9 @@ async fn main() -> io::Result<()> {
         _ => {
             log::info!("starting timestampvm");
 
-            let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) =
-                tokio::sync::broadcast::channel(1);
-
-            let vm_server =
-                avalanche_types::subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
-
-            avalanche_types::subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
+            let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) = broadcast::channel(1);
+            let vm_server = subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
+            subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
         }
     }
 }

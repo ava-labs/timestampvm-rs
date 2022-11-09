@@ -8,6 +8,7 @@ use std::{
 use avalanche_types::{ids, jsonrpc};
 use serde::{Deserialize, Serialize};
 
+/// Represents the RPC response for API `ping`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PingResponse {
     pub jsonrpc: String,
@@ -17,6 +18,7 @@ pub struct PingResponse {
     pub result: Option<crate::api::PingResponse>,
 }
 
+/// Ping the VM.
 pub async fn ping(http_rpc: &str, url_path: &str) -> io::Result<PingResponse> {
     log::info!("ping {http_rpc} with {url_path}");
 
@@ -30,6 +32,7 @@ pub async fn ping(http_rpc: &str, url_path: &str) -> io::Result<PingResponse> {
         .map_err(|e| Error::new(ErrorKind::Other, format!("failed ping '{}'", e)))
 }
 
+/// Represents the RPC response for API `last_accepted`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LastAcceptedResponse {
     pub jsonrpc: String,
@@ -39,6 +42,7 @@ pub struct LastAcceptedResponse {
     pub result: Option<crate::api::chain_handlers::LastAcceptedResponse>,
 }
 
+/// Requests for the last accepted block Id.
 pub async fn last_accepted(http_rpc: &str, url_path: &str) -> io::Result<LastAcceptedResponse> {
     log::info!("last_accepted {http_rpc} with {url_path}");
 
@@ -52,6 +56,7 @@ pub async fn last_accepted(http_rpc: &str, url_path: &str) -> io::Result<LastAcc
         .map_err(|e| Error::new(ErrorKind::Other, format!("failed last_accepted '{}'", e)))
 }
 
+/// Represents the RPC response for API `get_block`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GetBlockResponse {
     pub jsonrpc: String,
@@ -84,6 +89,7 @@ pub async fn get_block(
         .map_err(|e| Error::new(ErrorKind::Other, format!("failed get_block '{}'", e)))
 }
 
+/// Represents the RPC response for API `propose_block`.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProposeBlockResponse {
     pub jsonrpc: String,
@@ -91,8 +97,20 @@ pub struct ProposeBlockResponse {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<crate::api::chain_handlers::ProposeBlockResponse>,
+
+    /// Returns non-empty error string, if any.
+    /// e.g., "error":{"code":-32603,"message":"data 1048586-byte exceeds the limit 1048576-byte"}
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<ProposeBlockResultError>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProposeBlockResultError {
+    pub code: i32,
+    pub message: String,
+}
+
+/// Proposes arbitrary data.
 pub async fn propose_block(
     http_rpc: &str,
     url_path: &str,

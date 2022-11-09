@@ -11,7 +11,7 @@ use derivative::{self, Derivative};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-/// Represents a block, specific to this Vm.
+/// Represents a block, specific to [`Vm`](crate::vm::Vm).
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Derivative)]
 #[derivative(Debug, PartialEq, Eq)]
@@ -96,6 +96,7 @@ impl Block {
         })
     }
 
+    /// Encodes the [`Block`](Block) to JSON in bytes.
     pub fn to_slice(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
@@ -105,6 +106,7 @@ impl Block {
         })
     }
 
+    /// Loads [`Block`](Block) from JSON bytes.
     pub fn from_slice(d: impl AsRef<[u8]>) -> io::Result<Self> {
         let dd = d.as_ref();
         let mut b: Self = serde_json::from_slice(dd).map_err(|e| {
@@ -120,26 +122,32 @@ impl Block {
         Ok(b)
     }
 
+    /// Returns the parent block Id.
     pub fn parent_id(&self) -> ids::Id {
         self.parent_id
     }
 
+    /// Returns the height of this block.
     pub fn height(&self) -> u64 {
         self.height
     }
 
+    /// Returns the timestamp of this block.
     pub fn timestamp(&self) -> u64 {
         self.timestamp
     }
 
+    /// Returns the data of this block.
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
+    /// Returns the status of this block.
     pub fn status(&self) -> choices::status::Status {
         self.status.clone()
     }
 
+    /// Updates the status of this block.
     pub fn set_status(&mut self, status: choices::status::Status) {
         self.status = status;
     }
@@ -156,6 +164,8 @@ impl Block {
         self.state = state;
     }
 
+    /// Verifies [`Block`](Block) properties (e.g., heights),
+    /// and once verified, records it to the [`State`](crate::state::State).
     pub async fn verify(&mut self) -> io::Result<()> {
         if self.height == 0 && self.parent_id == ids::Id::empty() {
             log::debug!(
@@ -200,22 +210,24 @@ impl Block {
         return Ok(());
     }
 
+    /// Mark this [`Block`](Block) accepted and updates [`State`](crate::state::State) accordingly.
     pub async fn accept(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Accepted);
 
         // only decided blocks are persistent -- no reorg
-        self.state.put_block(&self.clone()).await?;
+        self.state.write_block(&self.clone()).await?;
         self.state.set_last_accepted_block(&self.id()).await?;
 
         self.state.remove_verified(&self.id()).await;
         Ok(())
     }
 
+    /// Mark this [`Block`](Block) rejected and updates [`State`](crate::state::State) accordingly.
     pub async fn reject(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Rejected);
 
         // only decided blocks are persistent -- no reorg
-        self.state.put_block(&self.clone()).await?;
+        self.state.write_block(&self.clone()).await?;
 
         self.state.remove_verified(&self.id()).await;
         Ok(())

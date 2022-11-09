@@ -14,6 +14,9 @@ use tokio::sync::{mpsc::Sender, RwLock};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Limits how much data a user can propose.
+pub const PROPOSE_LIMIT_BYTES: usize = 1024 * 1024;
+
 /// Represents VM-specific states.
 /// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
 /// To be protected with `Arc` and `RwLock`.
@@ -51,6 +54,7 @@ impl Default for VmState {
 /// Implements [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface.
 #[derive(Clone)]
 pub struct Vm {
+    /// Maintains the Vm-specific states.
     pub state: Arc<RwLock<VmState>>,
     pub app_sender: Option<Box<dyn subnet::rpc::common::appsender::AppSender + Send + Sync>>,
 
@@ -73,7 +77,7 @@ impl Vm {
         vm_state.bootstrapped
     }
 
-    /// Signal consensus engine that a new block is ready to be created.
+    /// Signals the consensus engine that a new block is ready to be created.
     pub async fn notify_block_ready(&self) {
         let vm_state = self.state.read().await;
         if let Some(to_engine) = &vm_state.to_engine {
@@ -93,12 +97,32 @@ impl Vm {
         return;
     }
 
-    pub async fn propose_block(&self, d: Vec<u8>) {
+    /// Proposes arbitrary data to mempool and notifies that a block is ready for builds.
+    /// Other VMs may optimize mempool with more complicated batching mechanisms.
+    pub async fn propose_block(&self, d: Vec<u8>) -> io::Result<()> {
+        let size = d.len();
+        log::info!("received propose_block of {size} bytes");
+
+        if size > PROPOSE_LIMIT_BYTES {
+            log::info!("limit exceeded... returning an error...");
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                format!(
+                    "data {}-byte exceeds the limit {}-byte",
+                    size, PROPOSE_LIMIT_BYTES
+                ),
+            ));
+        }
+
         let mut mempool = self.mempool.write().await;
         mempool.push_back(d);
+        log::info!("proposed {size} bytes of data for a block");
+
         self.notify_block_ready().await;
+        Ok(())
     }
 
+    /// Sets the state of the Vm.
     pub async fn set_state(&self, snow_state: subnet::rpc::snow::State) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
         match snow_state.try_into() {
@@ -132,6 +156,7 @@ impl Vm {
         }
     }
 
+    /// Sets the container preference of the Vm.
     pub async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
         vm_state.preferred = id;
@@ -139,6 +164,7 @@ impl Vm {
         Ok(())
     }
 
+    /// Returns the last accepted block Id.
     pub async fn last_accepted(&self) -> io::Result<ids::Id> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
@@ -229,6 +255,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         Ok(String::from(VERSION))
     }
 
+    /// Creates static handlers.
     async fn create_static_handlers(
         &mut self,
     ) -> io::Result<HashMap<String, subnet::rpc::common::http_handler::HttpHandler>> {
@@ -244,6 +271,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         Ok(handlers)
     }
 
+    /// Creates VM-specific handlers.
     async fn create_handlers(
         &mut self,
     ) -> io::Result<HashMap<String, subnet::rpc::common::http_handler::HttpHandler>> {
@@ -262,6 +290,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
 
 #[tonic::async_trait]
 impl subnet::rpc::snowman::block::ChainVm for Vm {
+    /// Builds a block from mempool data.
     async fn build_block(
         &self,
     ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {

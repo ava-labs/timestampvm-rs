@@ -44,7 +44,8 @@ fn block_with_status_key(blk_id: &ids::Id) -> Vec<u8> {
     k
 }
 
-/// Wraps [`Block`](Block) and its status.
+/// Wraps a [`Block`](crate::block::Block) and its status.
+/// This is the data format that [`State`](State) uses to persist blocks.
 #[derive(Serialize, Deserialize, Clone)]
 struct BlockWithStatus {
     block_bytes: Vec<u8>,
@@ -73,6 +74,7 @@ impl BlockWithStatus {
 }
 
 impl State {
+    /// Persists the last accepted block Id.
     pub async fn set_last_accepted_block(&self, blk_id: &ids::Id) -> io::Result<()> {
         let mut db = self.db.write().await;
         db.put(LAST_ACCEPTED_BLOCK_KEY, &blk_id.to_vec())
@@ -85,6 +87,7 @@ impl State {
             })
     }
 
+    /// Returns "true" if there's a last accepted block found.
     pub async fn has_last_accepted_block(&self) -> io::Result<bool> {
         let db = self.db.read().await;
         match db.has(LAST_ACCEPTED_BLOCK_KEY).await {
@@ -96,6 +99,7 @@ impl State {
         }
     }
 
+    /// Returns the last accepted block Id.
     pub async fn get_last_accepted_block_id(&self) -> io::Result<ids::Id> {
         let db = self.db.read().await;
         match db.get(LAST_ACCEPTED_BLOCK_KEY).await {
@@ -109,6 +113,7 @@ impl State {
         }
     }
 
+    /// Adds a block to "verified_blocks".
     pub async fn add_verified(&mut self, block: &Block) {
         let blk_id = block.id();
         log::info!("verified added {blk_id}");
@@ -117,17 +122,20 @@ impl State {
         verified_blocks.insert(blk_id, block.clone());
     }
 
+    /// Removes a block from "verified_blocks".
     pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
         let mut verified_blocks = self.verified_blocks.write().await;
         verified_blocks.remove(blk_id);
     }
 
+    /// Returns "true" if the block Id has been already verified.
     pub async fn has_verified(&self, blk_id: &ids::Id) -> bool {
         let verified_blocks = self.verified_blocks.read().await;
         verified_blocks.contains_key(blk_id)
     }
 
-    pub async fn put_block(&mut self, block: &Block) -> io::Result<()> {
+    /// Writes a block to the state storage.
+    pub async fn write_block(&mut self, block: &Block) -> io::Result<()> {
         let blk_id = block.id();
         let blk_bytes = block.to_slice()?;
 
@@ -144,6 +152,7 @@ impl State {
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {:?}", e)))
     }
 
+    /// Reads a block from the state storage.
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
         let verified_blocks = self.verified_blocks.read().await;
         if let Some(b) = verified_blocks.get(blk_id) {
@@ -193,10 +202,10 @@ async fn test_state() {
     let mut state = State::default();
     assert!(!state.has_last_accepted_block().await.unwrap());
 
-    state.put_block(&genesis_blk).await.unwrap();
+    state.write_block(&genesis_blk).await.unwrap();
     assert!(!state.has_last_accepted_block().await.unwrap());
 
-    state.put_block(&blk1).await.unwrap();
+    state.write_block(&blk1).await.unwrap();
     state.set_last_accepted_block(&blk1.id()).await.unwrap();
     assert!(state.has_last_accepted_block().await.unwrap());
 

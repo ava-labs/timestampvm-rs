@@ -9,7 +9,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-/// Represents the genesis data specific to this VM.
+/// Represents the genesis data specific to the VM.
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct Genesis {
     pub data: String,
@@ -28,6 +28,7 @@ impl Genesis {
         }
     }
 
+    /// Encodes the genesis to JSON bytes.
     pub fn to_slice(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
@@ -45,6 +46,7 @@ impl Genesis {
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to decode {}", e)))
     }
 
+    /// Persists the genesis to a file.
     pub fn sync(&self, file_path: &str) -> io::Result<()> {
         log::info!("syncing genesis to '{}'", file_path);
 
