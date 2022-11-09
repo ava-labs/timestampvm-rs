@@ -171,7 +171,7 @@ impl Vm {
             let blk_id = state.get_last_accepted_block_id().await?;
             return Ok(blk_id);
         }
-        return Err(Error::new(ErrorKind::NotFound, "state manager not found"));
+        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 }
 
@@ -325,7 +325,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
             return Ok(Box::new(block));
         }
 
-        return Err(Error::new(ErrorKind::NotFound, "state manager not found"));
+        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 
     async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
@@ -416,7 +416,7 @@ impl subnet::rpc::snowman::block::Getter for Vm {
             return Ok(Box::new(block));
         }
 
-        return Err(Error::new(ErrorKind::NotFound, "state manager not found"));
+        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 }
 
@@ -442,6 +442,6 @@ impl subnet::rpc::snowman::block::Parser for Vm {
             };
         }
 
-        return Err(Error::new(ErrorKind::NotFound, "state manager not found"));
+        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 }

@@ -108,7 +108,7 @@ impl State {
                 if e.kind() == ErrorKind::NotFound && e.to_string().contains("not found") {
                     return Ok(ids::Id::empty());
                 }
-                return Err(e);
+                Err(e)
             }
         }
     }
