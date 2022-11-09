@@ -178,7 +178,6 @@ impl Block {
 
         // if already exists in database, it means it's already accepted
         // thus no need to verify once more
-        // TODO: cache verified blocks in memory
         if self.state.get_block(&self.id).await.is_ok() {
             log::debug!("block {} already verified", self.id);
             return Ok(());
@@ -207,7 +206,7 @@ impl Block {
         }
 
         self.state.add_verified(&self.clone()).await;
-        return Ok(());
+        Ok(())
     }
 
     /// Mark this [`Block`](Block) accepted and updates [`State`](crate::state::State) accordingly.
