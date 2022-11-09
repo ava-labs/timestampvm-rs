@@ -101,7 +101,7 @@ pub struct ProposeBlockResponse {
     /// Returns non-empty error string, if any.
     /// e.g., "error":{"code":-32603,"message":"data 1048586-byte exceeds the limit 1048576-byte"}
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
+    pub error: Option<HashMap<String, String>>,
 }
 
 /// Proposes arbitrary data.
