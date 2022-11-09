@@ -149,7 +149,7 @@ impl Vm {
     }
 }
 
-impl avalanche_types::rpcchainvm::vm::Vm for Vm {}
+impl avalanche_types::subnet::rpc::vm::Vm for Vm {}
 
 #[tonic::async_trait]
 impl subnet::rpc::common::vm::Vm for Vm {

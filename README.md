@@ -95,6 +95,6 @@ The project presents how to build a custom VM in Rust meeting the following requ
 
 1. The custom VM plug-in must be compiled to a binary, so that `avalanchego` can launch it as a sub-process plug-in.
 2. The VM binary path is named in VM ID, hash type with 32 bytes (256 bits) size.
-3. The VM binary must implement snowman "block.ChainVM" interface, to be registered via "rpcchainvm.Serve".
+3. The VM binary must implement snowman [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface, to be registered via [`rpcchainvm.Serve`](https://pkg.go.dev/github.com/ava-labs/avalanchego/vms/rpcchainvm#Serve).
 4. The VM binary must implement VM-specific services, served via URL path of the blockchain ID.
 5. Optionally, the binary implements VM-specific static handlers, served via URL path of the VM ID.
