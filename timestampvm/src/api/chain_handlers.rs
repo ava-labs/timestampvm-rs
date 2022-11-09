@@ -9,6 +9,7 @@ use jsonrpc_core::{BoxFuture, Error, ErrorCode, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
 
+/// Defines RPCs specific to the chain.
 #[rpc]
 pub trait Rpc {
     #[rpc(name = "ping", alias("timestampvm.ping"))]
@@ -54,6 +55,7 @@ pub struct GetBlockResponse {
     pub block: Block,
 }
 
+/// Implements API services for the chain-specific handlers.
 pub struct Service {
     pub vm: vm::Vm,
 }
@@ -75,7 +77,9 @@ impl Rpc for Service {
         let vm = self.vm.clone();
 
         Box::pin(async move {
-            vm.propose_block(args.data).await;
+            vm.propose_block(args.data)
+                .await
+                .map_err(create_jsonrpc_error)?;
             Ok(ProposeBlockResponse { success: true })
         })
     }

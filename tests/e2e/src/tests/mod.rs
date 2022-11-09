@@ -265,6 +265,20 @@ async fn e2e() {
     let height1 = resp.result.unwrap().block.height();
     assert_eq!(height0 + 1, height1);
 
+    // expects an error of
+    // "error":{"code":-32603,"message":"data 1048586-byte exceeds the limit 1048576-byte"}
+    log::info!("propose block beyond its limit");
+    let resp = timestampvm::client::propose_block(
+        &ep,
+        &chain_url_path,
+        vec![1; timestampvm::vm::PROPOSE_LIMIT_BYTES + 10],
+    )
+    .await
+    .unwrap();
+    assert!(resp.result.is_none());
+    assert!(resp.error.is_some());
+    log::info!("propose block response: {:?}", resp);
+
     if crate::get_network_runner_enable_shutdown() {
         log::info!("shutdown is enabled... stopping...");
         let _resp = cli.stop().await.expect("failed stop");
