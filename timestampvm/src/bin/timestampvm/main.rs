@@ -46,9 +46,9 @@ async fn main() -> io::Result<()> {
                 tokio::sync::broadcast::channel(1);
 
             let vm_server =
-                avalanche_types::rpcchainvm::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
+                avalanche_types::subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
 
-            avalanche_types::rpcchainvm::plugin::serve(vm_server, stop_ch_rx).await
+            avalanche_types::subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
         }
     }
 }
