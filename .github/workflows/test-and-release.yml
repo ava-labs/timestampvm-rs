@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -26,11 +27,14 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
           override: true
+
       - name: Check Rust version
         run: rustc --version
+
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
+
       - name: Run static analysis tests
         shell: bash
         run: scripts/tests.lint.sh
@@ -57,11 +61,14 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
           override: true
+
       - name: Check Rust version
         run: rustc --version
+
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
+
       - name: Check unused Cargo dependencies
         shell: bash
         run: scripts/tests.unused.sh
@@ -87,11 +94,14 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+
       - name: Check Rust version
         run: rustc --version
+
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
+
       - name: Run unit tests
         run: scripts/tests.unit.sh
 
@@ -116,16 +126,20 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+
       - name: Check Rust version
         run: rustc --version
+
       - uses: Swatinem/rust-cache@v1
         with:
           cache-on-failure: true
+
       - name: Build plugin
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --bin timestampvm
+
       - name: Run e2e tests
         run: VM_PLUGIN_PATH=/home/runner/work/timestampvm-rs/timestampvm-rs/target/release/timestampvm scripts/tests.e2e.sh
 
@@ -172,6 +186,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.job.target }}
           override: true
+
       - name: Check Rust version
         run: rustc --version
 
