@@ -138,7 +138,7 @@ impl Vm {
             }
 
             // called by the bootstrapper to signal bootstrapping has started.
-            subnet::rpc::snow::State::Bootstrapping  => {
+            subnet::rpc::snow::State::Bootstrapping => {
                 log::info!("set_state: bootstrapping");
                 vm_state.bootstrapped = false;
                 Ok(())
@@ -214,7 +214,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
         if has_last_accepted {
             let last_accepted_blk_id = state.get_last_accepted_block_id().await?;
             vm_state.preferred = last_accepted_blk_id;
-            log::info!("intialized Vm with last accepted block {last_accepted_blk_id}");
+            log::info!("initialized Vm with last accepted block {last_accepted_blk_id}");
         } else {
             let mut genesis_block = Block::new(
                 ids::Id::empty(),
@@ -228,7 +228,7 @@ impl subnet::rpc::common::vm::Vm for Vm {
 
             let genesis_blk_id = genesis_block.id();
             vm_state.preferred = genesis_blk_id;
-            log::info!("intialized Vm with genesis block {genesis_blk_id}");
+            log::info!("initialized Vm with genesis block {genesis_blk_id}");
         }
 
         self.mempool = Arc::new(RwLock::new(VecDeque::with_capacity(100)));

@@ -7,6 +7,7 @@ use std::{
 
 use crate::state;
 use avalanche_types::{choices, codec::serde::hex_0x_bytes::Hex0xBytes, ids, subnet};
+use chrono::{Duration, Utc};
 use derivative::{self, Derivative};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -152,14 +153,17 @@ impl Block {
         self.status = status;
     }
 
+    /// Returns the byte representation of this block.
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
 
+    /// Returns the ID of this block
     pub fn id(&self) -> ids::Id {
         self.id
     }
 
+    /// Updates the state of the block.
     pub fn set_state(&mut self, state: state::State) {
         self.state = state;
     }
@@ -185,6 +189,7 @@ impl Block {
 
         let prnt_blk = self.state.get_block(&self.parent_id).await?;
 
+        // ensure the height of the block is immediately following its parent
         if prnt_blk.height != self.height - 1 {
             return Err(Error::new(
                 ErrorKind::InvalidData,
@@ -195,6 +200,7 @@ impl Block {
             ));
         }
 
+        // ensure block timestamp is after its parent
         if prnt_blk.timestamp > self.timestamp {
             return Err(Error::new(
                 ErrorKind::InvalidData,
@@ -205,6 +211,18 @@ impl Block {
             ));
         }
 
+        // ensure block timestamp is no more than an hour ahead of this nodes time
+        if self.timestamp as i64 >= (Utc::now() + Duration::hours(1)).timestamp() {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "block timestamp {} is more than 1 hour ahead of local time",
+                    self.timestamp
+                ),
+            ));
+        }
+
+        // add newly verified block to memory
         self.state.add_verified(&self.clone()).await;
         Ok(())
     }
