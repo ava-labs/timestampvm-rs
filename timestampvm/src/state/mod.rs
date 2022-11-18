@@ -57,7 +57,7 @@ impl BlockWithStatus {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize BlockStatus to JSON bytes {}", e),
+                format!("failed to serialize BlockStatus to JSON bytes: {}", e),
             )
         })
     }
@@ -67,7 +67,7 @@ impl BlockWithStatus {
         serde_json::from_slice(dd).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to deserialize BlockStatus from JSON {}", e),
+                format!("failed to deserialize BlockStatus from JSON: {}", e),
             )
         })
     }
@@ -94,7 +94,7 @@ impl State {
             Ok(found) => Ok(found),
             Err(e) => Err(Error::new(
                 ErrorKind::Other,
-                format!("failed to load last accepted block {}", e),
+                format!("failed to load last accepted block: {}", e),
             )),
         }
     }
@@ -105,7 +105,7 @@ impl State {
         match db.get(LAST_ACCEPTED_BLOCK_KEY).await {
             Ok(d) => Ok(ids::Id::from_slice(&d)),
             Err(e) => {
-                if e.kind() == ErrorKind::NotFound && e.to_string().contains("not found") {
+                if subnet::rpc::database::errors::is_not_found(&e) {
                     return Ok(ids::Id::empty());
                 }
                 Err(e)
@@ -154,6 +154,7 @@ impl State {
 
     /// Reads a block from the state storage.
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
+        // if the block has been previously verified return it.
         let verified_blocks = self.verified_blocks.read().await;
         if let Some(b) = verified_blocks.get(blk_id) {
             return Ok(b.clone());

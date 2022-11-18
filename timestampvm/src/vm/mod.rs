@@ -94,7 +94,6 @@ impl Vm {
         }
 
         log::warn!("consensus engine channel failed to initialized");
-        return;
     }
 
     /// Proposes arbitrary data to mempool and notifies that a block is ready for builds.
@@ -125,34 +124,32 @@ impl Vm {
     /// Sets the state of the Vm.
     pub async fn set_state(&self, snow_state: subnet::rpc::snow::State) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
-        match snow_state.try_into() {
+        match snow_state {
             // called by chains manager when it is creating the chain.
-            Ok(subnet::rpc::snow::State::Initializing) => {
+            subnet::rpc::snow::State::Initializing => {
                 log::info!("set_state: initializing");
                 vm_state.bootstrapped = false;
                 Ok(())
             }
 
-            Ok(subnet::rpc::snow::State::StateSyncing) => {
+            subnet::rpc::snow::State::StateSyncing => {
                 log::info!("set_state: state syncing");
                 Err(Error::new(ErrorKind::Other, "state sync is not supported"))
             }
 
             // called by the bootstrapper to signal bootstrapping has started.
-            Ok(subnet::rpc::snow::State::Bootstrapping) => {
+            subnet::rpc::snow::State::Bootstrapping  => {
                 log::info!("set_state: bootstrapping");
                 vm_state.bootstrapped = false;
                 Ok(())
             }
 
             // called when consensus has started signalling bootstrap phase is complete.
-            Ok(subnet::rpc::snow::State::NormalOp) => {
+            subnet::rpc::snow::State::NormalOp => {
                 log::info!("set_state: normal op");
                 vm_state.bootstrapped = true;
                 Ok(())
             }
-
-            Err(_) => Err(Error::new(ErrorKind::Other, "unknown state")),
         }
     }
 
