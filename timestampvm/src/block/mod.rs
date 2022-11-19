@@ -7,6 +7,7 @@ use std::{
 
 use crate::state;
 use avalanche_types::{choices, codec::serde::hex_0x_bytes::Hex0xBytes, ids, subnet};
+use chrono::{Duration, Utc};
 use derivative::{self, Derivative};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -152,14 +153,17 @@ impl Block {
         self.status = status;
     }
 
+    /// Returns the byte representation of this block.
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
 
+    /// Returns the ID of this block
     pub fn id(&self) -> ids::Id {
         self.id
     }
 
+    /// Updates the state of the block.
     pub fn set_state(&mut self, state: state::State) {
         self.state = state;
     }
@@ -185,6 +189,7 @@ impl Block {
 
         let prnt_blk = self.state.get_block(&self.parent_id).await?;
 
+        // ensure the height of the block is immediately following its parent
         if prnt_blk.height != self.height - 1 {
             return Err(Error::new(
                 ErrorKind::InvalidData,
@@ -195,6 +200,7 @@ impl Block {
             ));
         }
 
+        // ensure block timestamp is after its parent
         if prnt_blk.timestamp > self.timestamp {
             return Err(Error::new(
                 ErrorKind::InvalidData,
@@ -205,6 +211,18 @@ impl Block {
             ));
         }
 
+        // ensure block timestamp is no more than an hour ahead of this nodes time
+        if self.timestamp >= (Utc::now() + Duration::hours(1)).timestamp() as u64 {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                format!(
+                    "block timestamp {} is more than 1 hour ahead of local time",
+                    self.timestamp
+                ),
+            ));
+        }
+
+        // add newly verified block to memory
         self.state.add_verified(&self.clone()).await;
         Ok(())
     }
@@ -254,7 +272,7 @@ async fn test_block() {
     let mut genesis_blk = Block::new(
         ids::Id::empty(),
         0,
-        random_manager::u64(),
+        Utc::now().timestamp() as u64,
         random_manager::bytes(10).unwrap(),
         choices::status::Status::default(),
     )
@@ -352,6 +370,24 @@ async fn test_block() {
     assert!(blk3.verify().await.is_err());
 
     assert!(state.has_last_accepted_block().await.unwrap());
+
+    // blk4 built from blk2 has invalid timestamp built 2 hours in future
+    let mut blk4 = Block::new(
+        blk2.id,
+        blk2.height + 1,
+        (Utc::now() + Duration::hours(2)).timestamp() as u64,
+        random_manager::bytes(10).unwrap(),
+        choices::status::Status::default(),
+    )
+    .unwrap();
+    log::info!("blk4: {blk4}");
+    blk4.set_state(state.clone());
+    assert!(blk4
+        .verify()
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("1 hour ahead"));
 }
 
 #[tonic::async_trait]
