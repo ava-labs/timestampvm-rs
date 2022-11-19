@@ -80,20 +80,16 @@ impl Vm {
     /// Signals the consensus engine that a new block is ready to be created.
     pub async fn notify_block_ready(&self) {
         let vm_state = self.state.read().await;
-        if let Some(to_engine) = &vm_state.to_engine {
-            if to_engine
+        if let Some(engine) = &vm_state.to_engine {
+            engine
                 .send(subnet::rpc::common::message::Message::PendingTxs)
                 .await
-                .is_err()
-            {
-                log::warn!("dropping message to consensus engine");
-            } else {
-                log::info!("notified block ready!");
-            }
-            return;
-        }
+                .unwrap_or_else(|e| log::warn!("dropping message to consensus engine: {}", e));
 
-        log::warn!("consensus engine channel failed to initialized");
+            log::info!("notified block ready!");
+        } else {
+            log::error!("consensus engine channel failed to initialized");
+        }
     }
 
     /// Proposes arbitrary data to mempool and notifies that a block is ready for builds.
