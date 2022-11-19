@@ -212,7 +212,7 @@ impl Block {
         }
 
         // ensure block timestamp is no more than an hour ahead of this nodes time
-        if self.timestamp as i64 >= (Utc::now() + Duration::hours(1)).timestamp() {
+        if self.timestamp >= (Utc::now() + Duration::hours(1)).timestamp() as u64 {
             return Err(Error::new(
                 ErrorKind::InvalidData,
                 format!(
@@ -272,7 +272,7 @@ async fn test_block() {
     let mut genesis_blk = Block::new(
         ids::Id::empty(),
         0,
-        random_manager::u64(),
+        Utc::now().timestamp() as u64,
         random_manager::bytes(10).unwrap(),
         choices::status::Status::default(),
     )
@@ -370,6 +370,24 @@ async fn test_block() {
     assert!(blk3.verify().await.is_err());
 
     assert!(state.has_last_accepted_block().await.unwrap());
+
+    // blk4 built from blk2 has invalid timestamp built 2 hours in future
+    let mut blk4 = Block::new(
+        blk2.id,
+        blk2.height + 1,
+        (Utc::now() + Duration::hours(2)).timestamp() as u64,
+        random_manager::bytes(10).unwrap(),
+        choices::status::Status::default(),
+    )
+    .unwrap();
+    log::info!("blk4: {blk4}");
+    blk4.set_state(state.clone());
+    assert!(blk4
+        .verify()
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("1 hour ahead"));
 }
 
 #[tonic::async_trait]
