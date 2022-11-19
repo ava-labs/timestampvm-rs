@@ -80,8 +80,8 @@ impl Vm {
     /// Signals the consensus engine that a new block is ready to be created.
     pub async fn notify_block_ready(&self) {
         let vm_state = self.state.read().await;
-        if let Some(engine) = &vm_state.to_engine {
-            engine
+        if let Some(to_engine) = &vm_state.to_engine {
+            to_engine
                 .send(subnet::rpc::common::message::Message::PendingTxs)
                 .await
                 .unwrap_or_else(|e| log::warn!("dropping message to consensus engine: {}", e));
