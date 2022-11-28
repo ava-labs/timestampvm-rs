@@ -64,12 +64,12 @@ pub struct Vm {
 }
 
 impl Vm {
-    pub fn new() -> Box<dyn subnet::rpc::vm::Vm + Send + Sync> {
-        Box::new(Vm {
+    pub fn new() -> Self {
+        Self {
             state: Arc::new(RwLock::new(VmState::default())),
             app_sender: None,
             mempool: Arc::new(RwLock::new(VecDeque::with_capacity(100))),
-        })
+        }
     }
 
     pub async fn is_bootstrapped(&self) -> bool {
