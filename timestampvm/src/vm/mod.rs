@@ -7,7 +7,10 @@ use std::{
 };
 
 use crate::{api, block::Block, genesis::Genesis, state};
-use avalanche_types::{choices, ids, subnet};
+use avalanche_types::{
+    choices, ids,
+    subnet::{self, rpc::snow},
+};
 use chrono::{DateTime, Utc};
 use semver::Version;
 use tokio::sync::{mpsc::Sender, RwLock};
@@ -30,7 +33,7 @@ pub struct VmState {
     /// Currently preferred block Id.
     pub preferred: ids::Id,
     /// Channel to send messages to the snowman consensus engine.
-    pub to_engine: Option<Sender<subnet::rpc::common::message::Message>>,
+    pub to_engine: Option<Sender<snow::engine::common::message::Message>>,
     /// Set "true" to indicate that the Vm has finished bootstrapping
     /// for the chain.
     pub bootstrapped: bool,
@@ -56,7 +59,7 @@ impl Default for VmState {
 pub struct Vm {
     /// Maintains the Vm-specific states.
     pub state: Arc<RwLock<VmState>>,
-    pub app_sender: Option<Box<dyn subnet::rpc::common::appsender::AppSender + Send + Sync>>,
+    pub app_sender: Option<Box<dyn snow::engine::common::appsender::AppSender + Send + Sync>>,
 
     /// A queue of data that have not been put into a block and proposed yet.
     /// Mempool is not persistent, so just keep in memory via Vm.
@@ -82,7 +85,7 @@ impl Vm {
         let vm_state = self.state.read().await;
         if let Some(to_engine) = &vm_state.to_engine {
             to_engine
-                .send(subnet::rpc::common::message::Message::PendingTxs)
+                .send(snow::engine::common::message::Message::PendingTxs)
                 .await
                 .unwrap_or_else(|e| log::warn!("dropping message to consensus engine: {}", e));
 
@@ -118,30 +121,30 @@ impl Vm {
     }
 
     /// Sets the state of the Vm.
-    pub async fn set_state(&self, snow_state: subnet::rpc::snow::State) -> io::Result<()> {
+    pub async fn set_state(&self, snow_state: snow::State) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
         match snow_state {
             // called by chains manager when it is creating the chain.
-            subnet::rpc::snow::State::Initializing => {
+            snow::State::Initializing => {
                 log::info!("set_state: initializing");
                 vm_state.bootstrapped = false;
                 Ok(())
             }
 
-            subnet::rpc::snow::State::StateSyncing => {
+            snow::State::StateSyncing => {
                 log::info!("set_state: state syncing");
                 Err(Error::new(ErrorKind::Other, "state sync is not supported"))
             }
 
             // called by the bootstrapper to signal bootstrapping has started.
-            subnet::rpc::snow::State::Bootstrapping => {
+            snow::State::Bootstrapping => {
                 log::info!("set_state: bootstrapping");
                 vm_state.bootstrapped = false;
                 Ok(())
             }
 
             // called when consensus has started signalling bootstrap phase is complete.
-            subnet::rpc::snow::State::NormalOp => {
+            snow::State::NormalOp => {
                 log::info!("set_state: normal op");
                 vm_state.bootstrapped = true;
                 Ok(())
@@ -168,10 +171,10 @@ impl Vm {
     }
 }
 
-impl avalanche_types::subnet::rpc::vm::Vm for Vm {}
+impl subnet::rpc::vm::Vm for Vm {}
 
 #[tonic::async_trait]
-impl subnet::rpc::common::vm::Vm for Vm {
+impl snow::engine::common::vm::Vm for Vm {
     async fn initialize(
         &mut self,
         ctx: Option<subnet::rpc::context::Context>,
@@ -179,9 +182,9 @@ impl subnet::rpc::common::vm::Vm for Vm {
         genesis_bytes: &[u8],
         _upgrade_bytes: &[u8],
         _config_bytes: &[u8],
-        to_engine: Sender<subnet::rpc::common::message::Message>,
-        _fxs: &[subnet::rpc::common::vm::Fx],
-        app_sender: Box<dyn subnet::rpc::common::appsender::AppSender + Send + Sync>,
+        to_engine: Sender<snow::engine::common::message::Message>,
+        _fxs: &[snow::engine::common::vm::Fx],
+        app_sender: Box<dyn snow::engine::common::appsender::AppSender + Send + Sync>,
     ) -> io::Result<()> {
         log::info!("initializing Vm");
         let mut vm_state = self.state.write().await;
@@ -251,12 +254,12 @@ impl subnet::rpc::common::vm::Vm for Vm {
     /// Creates static handlers.
     async fn create_static_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, subnet::rpc::common::http_handler::HttpHandler>> {
+    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
         let svc = api::static_handlers::Service::new(self.clone());
         let mut handler = jsonrpc_core::IoHandler::new();
         handler.extend_with(api::static_handlers::Rpc::to_delegate(svc));
 
-        let http_handler = subnet::rpc::common::http_handler::HttpHandler::new_from_u8(0, handler)
+        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
             .map_err(|_| Error::from(ErrorKind::InvalidData))?;
 
         let mut handlers = HashMap::new();
@@ -267,12 +270,12 @@ impl subnet::rpc::common::vm::Vm for Vm {
     /// Creates VM-specific handlers.
     async fn create_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, subnet::rpc::common::http_handler::HttpHandler>> {
+    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
         let svc = api::chain_handlers::Service::new(self.clone());
         let mut handler = jsonrpc_core::IoHandler::new();
         handler.extend_with(api::chain_handlers::Rpc::to_delegate(svc));
 
-        let http_handler = subnet::rpc::common::http_handler::HttpHandler::new_from_u8(0, handler)
+        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
             .map_err(|_| Error::from(ErrorKind::InvalidData))?;
 
         let mut handlers = HashMap::new();
@@ -340,7 +343,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::common::apphandler::AppHandler for Vm {
+impl snow::engine::common::engine::NetworkAppHandler for Vm {
     /// Currently, no app-specific messages, so returning Ok.
     async fn app_request(
         &self,
@@ -378,7 +381,42 @@ impl subnet::rpc::common::apphandler::AppHandler for Vm {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::common::vm::Connector for Vm {
+impl snow::engine::common::engine::CrossChainAppHandler for Vm {
+    /// Currently, no cross chain specific messages, so returning Ok.
+    async fn cross_chain_app_request(
+        &self,
+        _chain_id: &ids::Id,
+        _request_id: u32,
+        _deadline: DateTime<Utc>,
+        _request: &[u8],
+    ) -> io::Result<()> {
+        Ok(())
+    }
+
+    /// Currently, no cross chain specific messages, so returning Ok.
+    async fn cross_chain_app_request_failed(
+        &self,
+        _chain_id: &ids::Id,
+        _request_id: u32,
+    ) -> io::Result<()> {
+        Ok(())
+    }
+
+    /// Currently, no cross chain specific messages, so returning Ok.
+    async fn cross_chain_app_response(
+        &self,
+        _chain_id: &ids::Id,
+        _request_id: u32,
+        _response: &[u8],
+    ) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+impl snow::engine::common::engine::AppHandler for Vm {}
+
+#[tonic::async_trait]
+impl snow::engine::common::vm::Connector for Vm {
     async fn connected(&self, _id: &ids::node::Id) -> io::Result<()> {
         // no-op
         Ok(())
