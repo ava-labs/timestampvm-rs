@@ -9,6 +9,8 @@ use std::{
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
 use avalanche_types::{client::info as avalanche_sdk_info, ids, subnet};
 
+const AVALANCHEGO_VERSION: &str = "v1.9.4";
+
 #[tokio::test]
 async fn e2e() {
     let _ = env_logger::builder()
@@ -50,12 +52,13 @@ async fn e2e() {
             .unwrap()
             .to_string()
     } else {
-        // keep this in sync with "proto" crate
-        // ref. https://github.com/ava-labs/avalanchego/blob/v1.9.2/version/constants.go#L15-L17
-        let (exec_path, plugins_dir) =
-            avalanche_installer::avalanchego::download(None, None, Some("v1.9.2".to_string()))
-                .await
-                .unwrap();
+        let (exec_path, plugins_dir) = avalanche_installer::avalanchego::download(
+            None,
+            None,
+            Some(AVALANCHEGO_VERSION.to_string()),
+        )
+        .await
+        .unwrap();
         avalanchego_exec_path = exec_path;
         plugins_dir
     };

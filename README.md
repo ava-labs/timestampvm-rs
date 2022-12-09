@@ -32,6 +32,12 @@ async fn main() -> std::io::Result<()> {
 
 See [`bin/timestampvm`](timestampvm/src/bin/timestampvm/main.rs) for plugin implementation and [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
 
+## AvalancheGo Compatibility
+| Version(s) | AvalancheGo Version(s) |
+| --- | --- |
+| v0.0.6 | v1.9.2,v1.9.3 |
+| v0.0.7 | v1.9.4 |
+
 ## Example
 
 ```bash
