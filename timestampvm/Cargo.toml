@@ -30,4 +30,4 @@ tokio = { version = "1.23.0", features = ["fs", "rt-multi-thread"] }
 tonic = { version = "0.8.3", features = ["gzip"] }
 
 [dev-dependencies]
-random-manager = "0.0.1"
+random-manager = "0.0.2"
