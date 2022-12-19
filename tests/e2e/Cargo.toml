@@ -16,7 +16,7 @@ avalanche-network-runner-sdk = "0.3.0" # https://crates.io/crates/avalanche-netw
 avalanche-types = { version = "0.0.159", features = ["client", "subnet"] } # https://crates.io/crates/avalanche-types
 env_logger = "0.10.0"
 log = "0.4.17"
-random-manager = "0.0.1"
+random-manager = "0.0.2"
 serde_json = "1.0.89" # https://github.com/serde-rs/json/releases
 tempfile = "3.3.0"
 timestampvm = { path = "../../timestampvm" }
