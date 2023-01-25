@@ -7,9 +7,9 @@ use std::{
 };
 
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
-use avalanche_types::{client::info as avalanche_sdk_info, ids, subnet};
+use avalanche_types::{ids, jsonrpc::client::info as avalanche_sdk_info, subnet};
 
-const AVALANCHEGO_VERSION: &str = "v1.9.4";
+const AVALANCHEGO_VERSION: &str = "v1.9.7";
 
 #[tokio::test]
 async fn e2e() {
@@ -69,6 +69,8 @@ async fn e2e() {
         plugins_dir,
         vm_id
     );
+
+    fs::create_dir(&plugins_dir).unwrap();
     fs::copy(
         &vm_plugin_path,
         Path::new(&plugins_dir).join(&vm_id.to_string()),

@@ -9,10 +9,7 @@ pub fn get_network_runner_grpc_endpoint() -> (String, bool) {
 }
 
 pub fn get_network_runner_enable_shutdown() -> bool {
-    match std::env::var("NETWORK_RUNNER_ENABLE_SHUTDOWN") {
-        Ok(_) => true,
-        _ => false,
-    }
+    matches!(std::env::var("NETWORK_RUNNER_ENABLE_SHUTDOWN"), Ok(_))
 }
 
 pub fn get_avalanchego_path() -> (String, bool) {

@@ -107,7 +107,7 @@ impl State {
         match db.get(LAST_ACCEPTED_BLOCK_KEY).await {
             Ok(d) => Ok(ids::Id::from_slice(&d)),
             Err(e) => {
-                if subnet::rpc::database::errors::is_not_found(&e) {
+                if subnet::rpc::errors::is_not_found(&e) {
                     return Ok(ids::Id::empty());
                 }
                 Err(e)

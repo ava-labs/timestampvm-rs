@@ -37,6 +37,7 @@ See [`bin/timestampvm`](timestampvm/src/bin/timestampvm/main.rs) for plugin impl
 | --- | --- |
 | v0.0.6 | v1.9.2,v1.9.3 |
 | v0.0.7 | v1.9.4 |
+| v0.0.8 | v1.9.7 |
 
 ## Example
 
