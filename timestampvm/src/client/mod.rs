@@ -129,7 +129,10 @@ pub async fn propose_block(
     data.method = String::from("timestampvm.proposeBlock");
 
     let mut m = HashMap::new();
-    m.insert("data".to_string(), base64::encode(&d));
+    m.insert(
+        "data".to_string(),
+        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &d),
+    );
 
     let params = vec![m];
     data.params = Some(params);
