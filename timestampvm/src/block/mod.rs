@@ -409,7 +409,7 @@ impl subnet::rpc::consensus::snowman::Block for Block {
     }
 
     async fn parent(&self) -> ids::Id {
-        self.parent_id.clone()
+        self.parent_id
     }
 
     async fn verify(&mut self) -> io::Result<()> {

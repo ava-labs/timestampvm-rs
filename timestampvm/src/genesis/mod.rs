@@ -61,7 +61,7 @@ impl Genesis {
             )
         })?;
 
-        let mut f = File::create(&file_path)?;
+        let mut f = File::create(file_path)?;
         f.write_all(&d)?;
 
         Ok(())
