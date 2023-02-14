@@ -32,6 +32,11 @@ async fn main() -> std::io::Result<()> {
 
 See [`bin/timestampvm`](timestampvm/src/bin/timestampvm/main.rs) for plugin implementation and [`tests/e2e`](tests/e2e/src/tests/mod.rs) for full end-to-end tests.
 
+## Dependencies
+
+- Latest version of stable Rust.
+- To build and test timestampvm you need [protoc](https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os) version >= 3.15.0.
+
 ## AvalancheGo Compatibility
 | Version(s) | AvalancheGo Version(s) |
 | --- | --- |
