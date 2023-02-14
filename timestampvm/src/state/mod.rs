@@ -165,7 +165,7 @@ impl State {
         let db = self.db.read().await;
 
         let blk_status_bytes = db.get(&block_with_status_key(blk_id)).await?;
-        let blk_status = BlockWithStatus::from_slice(&blk_status_bytes)?;
+        let blk_status = BlockWithStatus::from_slice(blk_status_bytes)?;
 
         let mut blk = Block::from_slice(&blk_status.block_bytes)?;
         blk.set_status(blk_status.status);

@@ -66,6 +66,12 @@ pub struct Vm {
     pub mempool: Arc<RwLock<VecDeque<Vec<u8>>>>,
 }
 
+impl Default for Vm {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Vm {
     pub fn new() -> Self {
         Self {

@@ -73,7 +73,7 @@ async fn e2e() {
     fs::create_dir(&plugins_dir).unwrap();
     fs::copy(
         &vm_plugin_path,
-        Path::new(&plugins_dir).join(&vm_id.to_string()),
+        Path::new(&plugins_dir).join(vm_id.to_string()),
     )
     .unwrap();
 
@@ -170,7 +170,7 @@ async fn e2e() {
         }
 
         if let Some(ci) = &status.cluster_info {
-            if ci.custom_chains.len() > 0 {
+            if !ci.custom_chains.is_empty() {
                 break;
             }
         }
