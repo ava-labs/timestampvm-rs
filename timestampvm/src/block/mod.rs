@@ -273,7 +273,7 @@ async fn test_block() {
         ids::Id::empty(),
         0,
         Utc::now().timestamp() as u64,
-        random_manager::bytes(10).unwrap(),
+        random_manager::secure_bytes(10).unwrap(),
         choices::status::Status::default(),
     )
     .unwrap();
@@ -311,7 +311,7 @@ async fn test_block() {
         genesis_blk.id,
         genesis_blk.height + 1,
         genesis_blk.timestamp + 1,
-        random_manager::bytes(10).unwrap(),
+        random_manager::secure_bytes(10).unwrap(),
         choices::status::Status::default(),
     )
     .unwrap();
@@ -335,7 +335,7 @@ async fn test_block() {
         blk1.id,
         blk1.height + 1,
         blk1.timestamp + 1,
-        random_manager::bytes(10).unwrap(),
+        random_manager::secure_bytes(10).unwrap(),
         choices::status::Status::default(),
     )
     .unwrap();
@@ -360,7 +360,7 @@ async fn test_block() {
         blk2.id,
         blk2.height - 1,
         blk2.timestamp + 1,
-        random_manager::bytes(10).unwrap(),
+        random_manager::secure_bytes(10).unwrap(),
         choices::status::Status::default(),
     )
     .unwrap();
@@ -376,7 +376,7 @@ async fn test_block() {
         blk2.id,
         blk2.height + 1,
         (Utc::now() + Duration::hours(2)).timestamp() as u64,
-        random_manager::bytes(10).unwrap(),
+        random_manager::secure_bytes(10).unwrap(),
         choices::status::Status::default(),
     )
     .unwrap();
