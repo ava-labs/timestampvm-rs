@@ -34,7 +34,7 @@
 //! async fn main() -> std::io::Result<()> {
 //!     let (stop_ch_tx, stop_ch_rx): (Sender<()>, Receiver<()>) = broadcast::channel(1);
 //!     let vm_server = subnet::rpc::vm::server::Server::new(vm::Vm::new(), stop_ch_tx);
-//!     subnet::rpc::plugin::serve(vm_server, stop_ch_rx).await
+//!     subnet::rpc::vm::serve(vm_server, stop_ch_rx).await
 //! }
 //! ```
 
