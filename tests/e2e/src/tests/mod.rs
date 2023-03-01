@@ -9,7 +9,7 @@ use std::{
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
 use avalanche_types::{ids, jsonrpc::client::info as avalanche_sdk_info, subnet};
 
-const AVALANCHEGO_VERSION: &str = "v1.9.7";
+const AVALANCHEGO_VERSION: &str = "v1.9.9";
 
 #[tokio::test]
 async fn e2e() {
@@ -52,7 +52,7 @@ async fn e2e() {
             .unwrap()
             .to_string()
     } else {
-        let (exec_path, plugins_dir) = avalanche_installer::avalanchego::download(
+        let exec_path = avalanche_installer::avalanchego::github::download(
             None,
             None,
             Some(AVALANCHEGO_VERSION.to_string()),
@@ -60,7 +60,7 @@ async fn e2e() {
         .await
         .unwrap();
         avalanchego_exec_path = exec_path;
-        plugins_dir
+        avalanche_installer::avalanchego::get_plugin_dir(&avalanchego_exec_path)
     };
 
     log::info!(
@@ -79,7 +79,7 @@ async fn e2e() {
 
     // write some random genesis file
     let genesis = timestampvm::genesis::Genesis {
-        data: random_manager::string(10),
+        data: random_manager::secure_string(10),
     };
     let genesis_file_path = random_manager::tmp_path(10, None).unwrap();
     genesis.sync(&genesis_file_path).unwrap();
@@ -87,7 +87,7 @@ async fn e2e() {
     log::info!(
         "starting {} with avalanchego {}, genesis file path {}",
         vm_id,
-        avalanchego_exec_path,
+        &avalanchego_exec_path,
         genesis_file_path,
     );
     let resp = cli
