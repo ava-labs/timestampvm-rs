@@ -66,7 +66,7 @@ impl Default for VmState {
 #[derive(Clone)]
 pub struct Vm<A>
 where
-  A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     /// Maintains the Vm-specific states.
     pub state: Arc<RwLock<VmState>>,
@@ -79,7 +79,7 @@ where
 
 impl<A> Default for Vm<A>
 where
-A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -194,16 +194,12 @@ where
     }
 }
 
-impl<A> subnet::rpc::vm::Vm for Vm<A>
-where
-A: AppSender + Send + Sync + Clone + 'static,
-{
-}
+impl<A> subnet::rpc::vm::Vm for Vm<A> where A: AppSender + Send + Sync + Clone + 'static {}
 
 #[tonic::async_trait]
 impl<A> snow::engine::common::vm::Vm for Vm<A>
 where
- A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     type DatabaseManager = DatabaseManager;
     type AppSender = A;
@@ -320,7 +316,7 @@ where
 #[tonic::async_trait]
 impl<A> snowman::block::ChainVm for Vm<A>
 where
-  A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     type Block = Block;
 
@@ -453,16 +449,15 @@ where
     }
 }
 
-impl<A: AppSender> snow::engine::common::engine::AppHandler for Vm<A>
-where
-   A: AppSender + Send + Sync + Clone + 'static,
+impl<A: AppSender> snow::engine::common::engine::AppHandler for Vm<A> where
+    A: AppSender + Send + Sync + Clone + 'static
 {
 }
 
 #[tonic::async_trait]
 impl<A> snow::engine::common::vm::Connector for Vm<A>
 where
-   A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     async fn connected(&self, _id: &ids::node::Id) -> io::Result<()> {
         // no-op
@@ -509,7 +504,7 @@ where
 #[tonic::async_trait]
 impl<A> snowman::block::Parser for Vm<A>
 where
-   A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     type Block = Block;
 

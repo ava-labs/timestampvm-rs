@@ -32,7 +32,7 @@ where
 
 impl<A> Rpc for Service<A>
 where
-   A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");

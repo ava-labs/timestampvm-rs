@@ -69,7 +69,7 @@ where
 
 impl<A> Service<A>
 where
-   A: AppSender + Send + Sync + Clone + 'static,
+    A: AppSender + Send + Sync + Clone + 'static,
 {
     pub fn new(vm: vm::Vm<A>) -> Self {
         Self { vm }
