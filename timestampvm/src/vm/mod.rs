@@ -15,7 +15,7 @@ use avalanche_types::{
             database::manager::{DatabaseManager, Manager},
             health,
             snow::{self, engine::common::appsender::AppSender},
-            snowman,
+            snowman::{self, block::ChainVm},
         },
     },
 };
@@ -64,10 +64,7 @@ impl Default for VmState {
 
 /// Implements [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface.
 #[derive(Clone)]
-pub struct Vm<A>
-where
-    A: AppSender + Send + Sync + Clone + 'static,
-{
+pub struct Vm<A> {
     /// Maintains the Vm-specific states.
     pub state: Arc<RwLock<VmState>>,
     pub app_sender: Option<A>,
@@ -79,7 +76,7 @@ where
 
 impl<A> Default for Vm<A>
 where
-    A: AppSender + Send + Sync + Clone + 'static,
+    A: Send + Sync + Clone + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -88,7 +85,7 @@ where
 
 impl<A> Vm<A>
 where
-    A: AppSender + Send + Sync + Clone + 'static,
+    A: Send + Sync + Clone + 'static,
 {
     pub fn new() -> Self {
         Self {
@@ -314,14 +311,14 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> snowman::block::ChainVm for Vm<A>
+impl<A> ChainVm for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
     type Block = Block;
 
     /// Builds a block from mempool data.
-    async fn build_block(&self) -> io::Result<<Self as snowman::block::ChainVm>::Block> {
+    async fn build_block(&self) -> io::Result<<Self as ChainVm>::Block> {
         let mut mempool = self.mempool.write().await;
 
         log::info!("build_block called for {} mempool", mempool.len());
@@ -364,7 +361,7 @@ where
         self.last_accepted().await
     }
 
-    async fn issue_tx(&self) -> io::Result<<Self as snowman::block::ChainVm>::Block> {
+    async fn issue_tx(&self) -> io::Result<<Self as ChainVm>::Block> {
         Err(Error::new(
             ErrorKind::Unsupported,
             "issue_tx not implemented",

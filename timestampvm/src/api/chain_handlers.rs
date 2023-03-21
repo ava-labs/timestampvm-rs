@@ -3,8 +3,8 @@
 
 use std::str::FromStr;
 
-use crate::{block::Block, vm};
-use avalanche_types::{ids, subnet::rpc::snow::engine::common::appsender::AppSender};
+use crate::{block::Block, vm::Vm};
+use avalanche_types::ids;
 use jsonrpc_core::{BoxFuture, Error, ErrorCode, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
@@ -62,23 +62,23 @@ pub struct GetBlockResponse {
 /// Implements API services for the chain-specific handlers.
 pub struct Service<A>
 where
-    A: AppSender + Send + Sync + Clone + 'static,
+    A: Send + Sync + Clone + 'static,
 {
-    pub vm: vm::Vm<A>,
+    pub vm: Vm<A>,
 }
 
 impl<A> Service<A>
 where
-    A: AppSender + Send + Sync + Clone + 'static,
+    A: Send + Sync + Clone + 'static,
 {
-    pub fn new(vm: vm::Vm<A>) -> Self {
+    pub fn new(vm: Vm<A>) -> Self {
         Self { vm }
     }
 }
 
 impl<A> Rpc for Service<A>
 where
-    A: AppSender + Send + Sync + Clone + 'static,
+    A: Send + Sync + Clone + 'static,
 {
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");
