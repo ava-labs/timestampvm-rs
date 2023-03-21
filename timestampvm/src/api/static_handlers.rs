@@ -1,7 +1,7 @@
 //! Implements static handlers specific to this VM.
 //! To be served via `[HOST]/ext/vm/[VM ID]/static`.
 
-use crate::vm;
+use crate::vm::Vm;
 use jsonrpc_core::{BoxFuture, Result};
 use jsonrpc_derive::rpc;
 
@@ -13,17 +13,20 @@ pub trait Rpc {
 }
 
 /// Implements API services for the static handlers.
-pub struct Service {
-    pub vm: vm::Vm,
+pub struct Service<A> {
+    pub vm: Vm<A>,
 }
 
-impl Service {
-    pub fn new(vm: vm::Vm) -> Self {
+impl<A> Service<A> {
+    pub fn new(vm: Vm<A>) -> Self {
         Self { vm }
     }
 }
 
-impl Rpc for Service {
+impl<A> Rpc for Service<A>
+where
+    A: Send + Sync + Clone + 'static,
+{
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");
         Box::pin(async move { Ok(crate::api::PingResponse { success: true }) })

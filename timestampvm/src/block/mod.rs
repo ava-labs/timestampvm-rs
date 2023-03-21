@@ -6,7 +6,12 @@ use std::{
 };
 
 use crate::state;
-use avalanche_types::{choices, codec::serde::hex_0x_bytes::Hex0xBytes, ids, subnet};
+use avalanche_types::{
+    choices,
+    codec::serde::hex_0x_bytes::Hex0xBytes,
+    ids,
+    subnet::rpc::consensus::snowman::{self, Decidable},
+};
 use chrono::{Duration, Utc};
 use derivative::{self, Derivative};
 use serde::{Deserialize, Serialize};
@@ -391,13 +396,9 @@ async fn test_block() {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::consensus::snowman::Block for Block {
+impl snowman::Block for Block {
     async fn bytes(&self) -> &[u8] {
         return self.bytes.as_ref();
-    }
-
-    async fn to_bytes(&self) -> io::Result<Vec<u8>> {
-        self.to_slice()
     }
 
     async fn height(&self) -> u64 {
@@ -418,7 +419,7 @@ impl subnet::rpc::consensus::snowman::Block for Block {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::consensus::snowman::Decidable for Block {
+impl Decidable for Block {
     /// Implements "snowman.Block.choices.Decidable"
     async fn status(&self) -> choices::status::Status {
         self.status.clone()
@@ -434,22 +435,5 @@ impl subnet::rpc::consensus::snowman::Decidable for Block {
 
     async fn reject(&mut self) -> io::Result<()> {
         self.reject().await
-    }
-}
-
-#[tonic::async_trait]
-impl subnet::rpc::consensus::snowman::Initializer for Block {
-    async fn init(&mut self, bytes: &[u8], status: choices::status::Status) -> io::Result<()> {
-        *self = Block::from_slice(bytes)?;
-        self.status = status;
-
-        Ok(())
-    }
-}
-
-#[tonic::async_trait]
-impl subnet::rpc::consensus::snowman::StatusWriter for Block {
-    async fn set_status(&mut self, status: choices::status::Status) {
-        self.set_status(status)
     }
 }
