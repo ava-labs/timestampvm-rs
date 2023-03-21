@@ -9,7 +9,15 @@ use std::{
 use crate::{api, block::Block, genesis::Genesis, state};
 use avalanche_types::{
     choices, ids,
-    subnet::{self, rpc::snow},
+    subnet::{
+        self,
+        rpc::{
+            database::manager::{DatabaseManager, Manager},
+            health,
+            snow::{self, engine::common::appsender::AppSender},
+            snowman,
+        },
+    },
 };
 use chrono::{DateTime, Utc};
 use semver::Version;
@@ -56,23 +64,32 @@ impl Default for VmState {
 
 /// Implements [`snowman.block.ChainVM`](https://pkg.go.dev/github.com/ava-labs/avalanchego/snow/engine/snowman/block#ChainVM) interface.
 #[derive(Clone)]
-pub struct Vm {
+pub struct Vm<A>
+where
+  A: AppSender + Send + Sync + Clone + 'static,
+{
     /// Maintains the Vm-specific states.
     pub state: Arc<RwLock<VmState>>,
-    pub app_sender: Option<Box<dyn snow::engine::common::appsender::AppSender + Send + Sync>>,
+    pub app_sender: Option<A>,
 
     /// A queue of data that have not been put into a block and proposed yet.
     /// Mempool is not persistent, so just keep in memory via Vm.
     pub mempool: Arc<RwLock<VecDeque<Vec<u8>>>>,
 }
 
-impl Default for Vm {
+impl<A> Default for Vm<A>
+where
+A: AppSender + Send + Sync + Clone + 'static,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Vm {
+impl<A> Vm<A>
+where
+    A: AppSender + Send + Sync + Clone + 'static,
+{
     pub fn new() -> Self {
         Self {
             state: Arc::new(RwLock::new(VmState::default())),
@@ -177,20 +194,30 @@ impl Vm {
     }
 }
 
-impl subnet::rpc::vm::Vm for Vm {}
+impl<A> subnet::rpc::vm::Vm for Vm<A>
+where
+A: AppSender + Send + Sync + Clone + 'static,
+{
+}
 
 #[tonic::async_trait]
-impl snow::engine::common::vm::Vm for Vm {
+impl<A> snow::engine::common::vm::Vm for Vm<A>
+where
+ A: AppSender + Send + Sync + Clone + 'static,
+{
+    type DatabaseManager = DatabaseManager;
+    type AppSender = A;
+
     async fn initialize(
         &mut self,
         ctx: Option<subnet::rpc::context::Context>,
-        db_manager: Box<dyn subnet::rpc::database::manager::Manager + Send + Sync>,
+        db_manager: Self::DatabaseManager,
         genesis_bytes: &[u8],
         _upgrade_bytes: &[u8],
         _config_bytes: &[u8],
         to_engine: Sender<snow::engine::common::message::Message>,
         _fxs: &[snow::engine::common::vm::Fx],
-        app_sender: Box<dyn snow::engine::common::appsender::AppSender + Send + Sync>,
+        app_sender: Self::AppSender,
     ) -> io::Result<()> {
         log::info!("initializing Vm");
         let mut vm_state = self.state.write().await;
@@ -291,11 +318,14 @@ impl snow::engine::common::vm::Vm for Vm {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::snowman::block::ChainVm for Vm {
+impl<A> snowman::block::ChainVm for Vm<A>
+where
+  A: AppSender + Send + Sync + Clone + 'static,
+{
+    type Block = Block;
+
     /// Builds a block from mempool data.
-    async fn build_block(
-        &self,
-    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
+    async fn build_block(&self) -> io::Result<<Self as snowman::block::ChainVm>::Block> {
         let mut mempool = self.mempool.write().await;
 
         log::info!("build_block called for {} mempool", mempool.len());
@@ -324,7 +354,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
             block.verify().await?;
 
             log::info!("successfully built block");
-            return Ok(Box::new(block));
+            return Ok(block);
         }
 
         Err(Error::new(ErrorKind::NotFound, "state manager not found"))
@@ -338,9 +368,7 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
         self.last_accepted().await
     }
 
-    async fn issue_tx(
-        &self,
-    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
+    async fn issue_tx(&self) -> io::Result<<Self as snowman::block::ChainVm>::Block> {
         Err(Error::new(
             ErrorKind::Unsupported,
             "issue_tx not implemented",
@@ -349,7 +377,10 @@ impl subnet::rpc::snowman::block::ChainVm for Vm {
 }
 
 #[tonic::async_trait]
-impl snow::engine::common::engine::NetworkAppHandler for Vm {
+impl<A> snow::engine::common::engine::NetworkAppHandler for Vm<A>
+where
+    A: AppSender + Send + Sync + Clone + 'static,
+{
     /// Currently, no app-specific messages, so returning Ok.
     async fn app_request(
         &self,
@@ -387,7 +418,10 @@ impl snow::engine::common::engine::NetworkAppHandler for Vm {
 }
 
 #[tonic::async_trait]
-impl snow::engine::common::engine::CrossChainAppHandler for Vm {
+impl<A> snow::engine::common::engine::CrossChainAppHandler for Vm<A>
+where
+    A: AppSender + Send + Sync + Clone + 'static,
+{
     /// Currently, no cross chain specific messages, so returning Ok.
     async fn cross_chain_app_request(
         &self,
@@ -419,10 +453,17 @@ impl snow::engine::common::engine::CrossChainAppHandler for Vm {
     }
 }
 
-impl snow::engine::common::engine::AppHandler for Vm {}
+impl<A: AppSender> snow::engine::common::engine::AppHandler for Vm<A>
+where
+   A: AppSender + Send + Sync + Clone + 'static,
+{
+}
 
 #[tonic::async_trait]
-impl snow::engine::common::vm::Connector for Vm {
+impl<A> snow::engine::common::vm::Connector for Vm<A>
+where
+   A: AppSender + Send + Sync + Clone + 'static,
+{
     async fn connected(&self, _id: &ids::node::Id) -> io::Result<()> {
         // no-op
         Ok(())
@@ -435,22 +476,30 @@ impl snow::engine::common::vm::Connector for Vm {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::health::Checkable for Vm {
+impl<A> health::Checkable for Vm<A>
+where
+    A: AppSender + Send + Sync + Clone + 'static,
+{
     async fn health_check(&self) -> io::Result<Vec<u8>> {
         Ok("200".as_bytes().to_vec())
     }
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::snowman::block::Getter for Vm {
+impl<A> snowman::block::Getter for Vm<A>
+where
+    A: AppSender + Send + Sync + Clone + 'static,
+{
+    type Block = Block;
+
     async fn get_block(
         &self,
         blk_id: ids::Id,
-    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<<Self as snowman::block::Getter>::Block> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let block = state.get_block(&blk_id).await?;
-            return Ok(Box::new(block));
+            return Ok(block);
         }
 
         Err(Error::new(ErrorKind::NotFound, "state manager not found"))
@@ -458,11 +507,16 @@ impl subnet::rpc::snowman::block::Getter for Vm {
 }
 
 #[tonic::async_trait]
-impl subnet::rpc::snowman::block::Parser for Vm {
+impl<A> snowman::block::Parser for Vm<A>
+where
+   A: AppSender + Send + Sync + Clone + 'static,
+{
+    type Block = Block;
+
     async fn parse_block(
         &self,
         bytes: &[u8],
-    ) -> io::Result<Box<dyn subnet::rpc::consensus::snowman::Block + Send + Sync>> {
+    ) -> io::Result<<Self as snowman::block::Parser>::Block> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let mut new_block = Block::from_slice(bytes)?;
@@ -473,9 +527,9 @@ impl subnet::rpc::snowman::block::Parser for Vm {
             match state.get_block(&new_block.id()).await {
                 Ok(prev) => {
                     log::debug!("returning previously parsed block {}", prev.id());
-                    return Ok(Box::new(prev));
+                    return Ok(prev);
                 }
-                Err(_) => return Ok(Box::new(new_block)),
+                Err(_) => return Ok(new_block),
             };
         }
 
