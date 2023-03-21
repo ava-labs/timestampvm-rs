@@ -60,10 +60,7 @@ pub struct GetBlockResponse {
 }
 
 /// Implements API services for the chain-specific handlers.
-pub struct Service<A>
-where
-    A: Send + Sync + Clone + 'static,
-{
+pub struct Service<A> {
     pub vm: Vm<A>,
 }
 
