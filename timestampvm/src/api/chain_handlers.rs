@@ -64,10 +64,7 @@ pub struct Service<A> {
     pub vm: Vm<A>,
 }
 
-impl<A> Service<A>
-where
-    A: Send + Sync + Clone + 'static,
-{
+impl<A> Service<A> {
     pub fn new(vm: Vm<A>) -> Self {
         Self { vm }
     }

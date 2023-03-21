@@ -13,9 +13,16 @@ use avalanche_types::{
         self,
         rpc::{
             database::manager::{DatabaseManager, Manager},
-            health,
-            snow::{self, engine::common::appsender::AppSender},
-            snowman::{self, block::ChainVm},
+            health::Checkable,
+            snow::{
+                self,
+                engine::common::{
+                    appsender::AppSender,
+                    engine::{AppHandler, CrossChainAppHandler, NetworkAppHandler},
+                    vm::{CommonVm, Connector},
+                },
+            },
+            snowman::block::{ChainVm, Getter, Parser},
         },
     },
 };
@@ -191,10 +198,8 @@ where
     }
 }
 
-impl<A> subnet::rpc::vm::Vm for Vm<A> where A: AppSender + Send + Sync + Clone + 'static {}
-
 #[tonic::async_trait]
-impl<A> snow::engine::common::vm::Vm for Vm<A>
+impl<A> CommonVm for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
@@ -370,7 +375,7 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> snow::engine::common::engine::NetworkAppHandler for Vm<A>
+impl<A> NetworkAppHandler for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
@@ -411,7 +416,7 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> snow::engine::common::engine::CrossChainAppHandler for Vm<A>
+impl<A> CrossChainAppHandler for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
@@ -446,13 +451,10 @@ where
     }
 }
 
-impl<A: AppSender> snow::engine::common::engine::AppHandler for Vm<A> where
-    A: AppSender + Send + Sync + Clone + 'static
-{
-}
+impl<A: AppSender> AppHandler for Vm<A> where A: AppSender + Send + Sync + Clone + 'static {}
 
 #[tonic::async_trait]
-impl<A> snow::engine::common::vm::Connector for Vm<A>
+impl<A> Connector for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
@@ -468,7 +470,7 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> health::Checkable for Vm<A>
+impl<A> Checkable for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
@@ -478,16 +480,13 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> snowman::block::Getter for Vm<A>
+impl<A> Getter for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
     type Block = Block;
 
-    async fn get_block(
-        &self,
-        blk_id: ids::Id,
-    ) -> io::Result<<Self as snowman::block::Getter>::Block> {
+    async fn get_block(&self, blk_id: ids::Id) -> io::Result<<Self as Getter>::Block> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let block = state.get_block(&blk_id).await?;
@@ -499,16 +498,13 @@ where
 }
 
 #[tonic::async_trait]
-impl<A> snowman::block::Parser for Vm<A>
+impl<A> Parser for Vm<A>
 where
     A: AppSender + Send + Sync + Clone + 'static,
 {
     type Block = Block;
 
-    async fn parse_block(
-        &self,
-        bytes: &[u8],
-    ) -> io::Result<<Self as snowman::block::Parser>::Block> {
+    async fn parse_block(&self, bytes: &[u8]) -> io::Result<<Self as Parser>::Block> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {
             let mut new_block = Block::from_slice(bytes)?;
