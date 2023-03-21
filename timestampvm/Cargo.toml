@@ -1,6 +1,6 @@
 [package]
 name = "timestampvm"
-version = "0.0.10" # https://crates.io/crates/timestampvm
+version = "0.0.11" # https://crates.io/crates/timestampvm
 edition = "2021"
 rust-version = "1.68"
 publish = true
