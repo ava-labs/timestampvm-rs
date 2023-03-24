@@ -5,9 +5,9 @@ use std::{
     io::{self, Error, ErrorKind},
 };
 
-use crate::state;
+use crate::state::{self, State};
 use avalanche_types::{
-    choices,
+    choices::status::Status,
     codec::serde::hex_0x_bytes::Hex0xBytes,
     ids,
     subnet::rpc::consensus::snowman::{self, Decidable},
@@ -35,7 +35,7 @@ pub struct Block {
 
     /// Current block status.
     #[serde(skip)]
-    status: choices::status::Status,
+    status: Status,
     /// This block's encoded bytes.
     #[serde(skip)]
     bytes: Vec<u8>,
@@ -63,7 +63,7 @@ impl Block {
             timestamp: 0,
             data: Vec::new(),
 
-            status: choices::status::Status::default(),
+            status: Status::default(),
             bytes: Vec::new(),
             id: ids::Id::empty(),
 
@@ -76,7 +76,7 @@ impl Block {
         height: u64,
         timestamp: u64,
         data: Vec<u8>,
-        status: choices::status::Status,
+        status: Status,
     ) -> io::Result<Self> {
         let mut b = Self {
             parent_id,
@@ -149,12 +149,12 @@ impl Block {
     }
 
     /// Returns the status of this block.
-    pub fn status(&self) -> choices::status::Status {
+    pub fn status(&self) -> Status {
         self.status.clone()
     }
 
     /// Updates the status of this block.
-    pub fn set_status(&mut self, status: choices::status::Status) {
+    pub fn set_status(&mut self, status: Status) {
         self.status = status;
     }
 
@@ -169,7 +169,7 @@ impl Block {
     }
 
     /// Updates the state of the block.
-    pub fn set_state(&mut self, state: state::State) {
+    pub fn set_state(&mut self, state: State) {
         self.state = state;
     }
 
@@ -234,7 +234,7 @@ impl Block {
 
     /// Mark this [`Block`](Block) accepted and updates [`State`](crate::state::State) accordingly.
     pub async fn accept(&mut self) -> io::Result<()> {
-        self.set_status(choices::status::Status::Accepted);
+        self.set_status(Status::Accepted);
 
         // only decided blocks are persistent -- no reorg
         self.state.write_block(&self.clone()).await?;
@@ -246,7 +246,7 @@ impl Block {
 
     /// Mark this [`Block`](Block) rejected and updates [`State`](crate::state::State) accordingly.
     pub async fn reject(&mut self) -> io::Result<()> {
-        self.set_status(choices::status::Status::Rejected);
+        self.set_status(Status::Rejected);
 
         // only decided blocks are persistent -- no reorg
         self.state.write_block(&self.clone()).await?;
@@ -279,7 +279,7 @@ async fn test_block() {
         0,
         Utc::now().timestamp() as u64,
         random_manager::secure_bytes(10).unwrap(),
-        choices::status::Status::default(),
+        Status::default(),
     )
     .unwrap();
     log::info!("deserialized: {genesis_blk} (block Id: {})", genesis_blk.id);
@@ -290,7 +290,7 @@ async fn test_block() {
 
     assert_eq!(genesis_blk, deserialized);
 
-    let state = state::State::default();
+    let state = State::default();
     assert!(!state.has_last_accepted_block().await.unwrap());
 
     // inner db instance is protected with arc and mutex
@@ -302,7 +302,7 @@ async fn test_block() {
     assert!(state.has_verified(&genesis_blk.id()).await);
 
     genesis_blk.accept().await.unwrap();
-    assert_eq!(genesis_blk.status, choices::status::Status::Accepted);
+    assert_eq!(genesis_blk.status, Status::Accepted);
     assert!(state.has_last_accepted_block().await.unwrap());
     assert!(!state.has_verified(&genesis_blk.id()).await); // removed after acceptance
 
@@ -317,7 +317,7 @@ async fn test_block() {
         genesis_blk.height + 1,
         genesis_blk.timestamp + 1,
         random_manager::secure_bytes(10).unwrap(),
-        choices::status::Status::default(),
+        Status::default(),
     )
     .unwrap();
     log::info!("blk1: {blk1}");
@@ -327,7 +327,7 @@ async fn test_block() {
     assert!(state.has_verified(&blk1.id()).await);
 
     blk1.accept().await.unwrap();
-    assert_eq!(blk1.status, choices::status::Status::Accepted);
+    assert_eq!(blk1.status, Status::Accepted);
     assert!(!state.has_verified(&blk1.id()).await); // removed after acceptance
 
     let last_accepted_blk_id = state.get_last_accepted_block_id().await.unwrap();
@@ -341,7 +341,7 @@ async fn test_block() {
         blk1.height + 1,
         blk1.timestamp + 1,
         random_manager::secure_bytes(10).unwrap(),
-        choices::status::Status::default(),
+        Status::default(),
     )
     .unwrap();
     log::info!("blk2: {blk2}");
@@ -351,7 +351,7 @@ async fn test_block() {
     assert!(state.has_verified(&blk2.id()).await);
 
     blk2.reject().await.unwrap();
-    assert_eq!(blk2.status, choices::status::Status::Rejected);
+    assert_eq!(blk2.status, Status::Rejected);
     assert!(!state.has_verified(&blk2.id()).await); // removed after acceptance
 
     // "blk2" is rejected, so last accepted block must be "blk1"
@@ -366,7 +366,7 @@ async fn test_block() {
         blk2.height - 1,
         blk2.timestamp + 1,
         random_manager::secure_bytes(10).unwrap(),
-        choices::status::Status::default(),
+        Status::default(),
     )
     .unwrap();
     log::info!("blk3: {blk3}");
@@ -382,7 +382,7 @@ async fn test_block() {
         blk2.height + 1,
         (Utc::now() + Duration::hours(2)).timestamp() as u64,
         random_manager::secure_bytes(10).unwrap(),
-        choices::status::Status::default(),
+        Status::default(),
     )
     .unwrap();
     log::info!("blk4: {blk4}");
@@ -421,7 +421,7 @@ impl snowman::Block for Block {
 #[tonic::async_trait]
 impl Decidable for Block {
     /// Implements "snowman.Block.choices.Decidable"
-    async fn status(&self) -> choices::status::Status {
+    async fn status(&self) -> Status {
         self.status.clone()
     }
 

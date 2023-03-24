@@ -6,12 +6,21 @@ use std::{
     sync::Arc,
 };
 
-use crate::{api, block::Block, genesis::Genesis, state};
+use crate::{
+    api::{
+        chain_handlers::{ChainHandler, ChainService},
+        static_handlers::{StaticHandler, StaticService},
+    },
+    block::Block,
+    genesis::Genesis,
+    state::{self, State},
+};
 use avalanche_types::{
     choices, ids,
     subnet::{
         self,
         rpc::{
+            context::Context,
             database::manager::{DatabaseManager, Manager},
             health::Checkable,
             snow::{
@@ -19,7 +28,9 @@ use avalanche_types::{
                 engine::common::{
                     appsender::AppSender,
                     engine::{AppHandler, CrossChainAppHandler, NetworkAppHandler},
-                    vm::{CommonVm, Connector},
+                    http_handler::{HttpHandler, LockOptions},
+                    message::Message,
+                    vm::{CommonVm, Connector, Fx},
                 },
             },
             snowman::block::{ChainVm, Getter, Parser},
@@ -39,16 +50,16 @@ pub const PROPOSE_LIMIT_BYTES: usize = 1024 * 1024;
 /// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
 /// To be protected with `Arc` and `RwLock`.
 pub struct VmState {
-    pub ctx: Option<subnet::rpc::context::Context>,
+    pub ctx: Option<Context>,
     pub version: Version,
     pub genesis: Genesis,
 
     /// Represents persistent Vm state.
-    pub state: Option<state::State>,
+    pub state: Option<State>,
     /// Currently preferred block Id.
     pub preferred: ids::Id,
     /// Channel to send messages to the snowman consensus engine.
-    pub to_engine: Option<Sender<snow::engine::common::message::Message>>,
+    pub to_engine: Option<Sender<Message>>,
     /// Set "true" to indicate that the Vm has finished bootstrapping
     /// for the chain.
     pub bootstrapped: bool,
@@ -112,7 +123,7 @@ where
         let vm_state = self.state.read().await;
         if let Some(to_engine) = &vm_state.to_engine {
             to_engine
-                .send(snow::engine::common::message::Message::PendingTxs)
+                .send(Message::PendingTxs)
                 .await
                 .unwrap_or_else(|e| log::warn!("dropping message to consensus engine: {}", e));
 
@@ -205,6 +216,8 @@ where
 {
     type DatabaseManager = DatabaseManager;
     type AppSender = A;
+    type ChainHandler = ChainHandler<ChainService<A>>;
+    type StaticHandler = StaticHandler;
 
     async fn initialize(
         &mut self,
@@ -213,8 +226,8 @@ where
         genesis_bytes: &[u8],
         _upgrade_bytes: &[u8],
         _config_bytes: &[u8],
-        to_engine: Sender<snow::engine::common::message::Message>,
-        _fxs: &[snow::engine::common::vm::Fx],
+        to_engine: Sender<Message>,
+        _fxs: &[Fx],
         app_sender: Self::AppSender,
     ) -> io::Result<()> {
         log::info!("initializing Vm");
@@ -285,32 +298,36 @@ where
     /// Creates static handlers.
     async fn create_static_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
-        let svc = api::static_handlers::Service::new(self.clone());
-        let mut handler = jsonrpc_core::IoHandler::new();
-        handler.extend_with(api::static_handlers::Rpc::to_delegate(svc));
-
-        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
-            .map_err(|_| Error::from(ErrorKind::InvalidData))?;
-
+    ) -> io::Result<HashMap<String, HttpHandler<Self::StaticHandler>>> {
+        let handler = StaticHandler::new(StaticService::new());
         let mut handlers = HashMap::new();
-        handlers.insert("/static".to_string(), http_handler);
+        handlers.insert(
+            "/rpc".to_string(),
+            HttpHandler {
+                lock_option: LockOptions::WriteLock,
+                handler,
+                server_addr: None,
+            },
+        );
+
         Ok(handlers)
     }
 
     /// Creates VM-specific handlers.
     async fn create_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
-        let svc = api::chain_handlers::Service::new(self.clone());
-        let mut handler = jsonrpc_core::IoHandler::new();
-        handler.extend_with(api::chain_handlers::Rpc::to_delegate(svc));
-
-        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
-            .map_err(|_| Error::from(ErrorKind::InvalidData))?;
-
+    ) -> io::Result<HashMap<String, HttpHandler<Self::ChainHandler>>> {
+        let handler = ChainHandler::new(ChainService::new(self.clone()));
         let mut handlers = HashMap::new();
-        handlers.insert("/rpc".to_string(), http_handler);
+        handlers.insert(
+            "/rpc".to_string(),
+            HttpHandler {
+                lock_option: LockOptions::WriteLock,
+                handler,
+                server_addr: None,
+            },
+        );
+
         Ok(handlers)
     }
 }
