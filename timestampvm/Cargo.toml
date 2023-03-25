@@ -11,8 +11,9 @@ repository = "https://github.com/ava-labs/timestampvm-rs"
 readme = "../README.md"
 
 [dependencies]
-avalanche-types = { version = "0.0.319", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
+avalanche-types = { version = "0.0.322", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
 base64 = { version = "0.21.0" }
+bytes = "1.4.0"
 chrono = "0.4.23"
 clap = { version = "4.1.8", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"

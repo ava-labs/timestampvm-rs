@@ -6,7 +6,15 @@ use std::{
     sync::Arc,
 };
 
-use crate::{api, block::Block, genesis::Genesis, state};
+use crate::{
+    api::{
+        chain_handlers::{ChainHandler, ChainService},
+        static_handlers::{StaticHandler, StaticService},
+    },
+    block::Block,
+    genesis::Genesis,
+    state,
+};
 use avalanche_types::{
     choices, ids,
     subnet::{
@@ -19,6 +27,7 @@ use avalanche_types::{
                 engine::common::{
                     appsender::AppSender,
                     engine::{AppHandler, CrossChainAppHandler, NetworkAppHandler},
+                    http_handler::{HttpHandler, LockOptions},
                     vm::{CommonVm, Connector},
                 },
             },
@@ -205,6 +214,8 @@ where
 {
     type DatabaseManager = DatabaseManager;
     type AppSender = A;
+    type ChainHandler = ChainHandler<ChainService<A>>;
+    type StaticHandler = StaticHandler;
 
     async fn initialize(
         &mut self,
@@ -285,32 +296,36 @@ where
     /// Creates static handlers.
     async fn create_static_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
-        let svc = api::static_handlers::Service::new(self.clone());
-        let mut handler = jsonrpc_core::IoHandler::new();
-        handler.extend_with(api::static_handlers::Rpc::to_delegate(svc));
-
-        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
-            .map_err(|_| Error::from(ErrorKind::InvalidData))?;
-
+    ) -> io::Result<HashMap<String, HttpHandler<Self::StaticHandler>>> {
+        let handler = StaticHandler::new(StaticService::new());
         let mut handlers = HashMap::new();
-        handlers.insert("/static".to_string(), http_handler);
+        handlers.insert(
+            "/static".to_string(),
+            HttpHandler {
+                lock_option: LockOptions::WriteLock,
+                handler,
+                server_addr: None,
+            },
+        );
+
         Ok(handlers)
     }
 
     /// Creates VM-specific handlers.
     async fn create_handlers(
         &mut self,
-    ) -> io::Result<HashMap<String, snow::engine::common::http_handler::HttpHandler>> {
-        let svc = api::chain_handlers::Service::new(self.clone());
-        let mut handler = jsonrpc_core::IoHandler::new();
-        handler.extend_with(api::chain_handlers::Rpc::to_delegate(svc));
-
-        let http_handler = snow::engine::common::http_handler::HttpHandler::new_from_u8(0, handler)
-            .map_err(|_| Error::from(ErrorKind::InvalidData))?;
-
+    ) -> io::Result<HashMap<String, HttpHandler<Self::ChainHandler>>> {
+        let handler = ChainHandler::new(ChainService::new(self.clone()));
         let mut handlers = HashMap::new();
-        handlers.insert("/rpc".to_string(), http_handler);
+        handlers.insert(
+            "/rpc".to_string(),
+            HttpHandler {
+                lock_option: LockOptions::WriteLock,
+                handler,
+                server_addr: None,
+            },
+        );
+
         Ok(handlers)
     }
 }
