@@ -1,9 +1,14 @@
 //! Implements static handlers specific to this VM.
 //! To be served via `[HOST]/ext/vm/[VM ID]/static`.
 
-use crate::vm::Vm;
-use jsonrpc_core::{BoxFuture, Result};
+use std::io;
+
+use avalanche_types::{proto::http::Element, subnet::rpc::http::handle::Handle};
+use bytes::Bytes;
+use jsonrpc_core::{BoxFuture, IoHandler, Result};
 use jsonrpc_derive::rpc;
+
+use super::de_request;
 
 /// Defines static handler RPCs for this VM.
 #[rpc]
@@ -13,22 +18,47 @@ pub trait Rpc {
 }
 
 /// Implements API services for the static handlers.
-pub struct Service<A> {
-    pub vm: Vm<A>,
-}
+#[derive(Default)]
+pub struct StaticService {}
 
-impl<A> Service<A> {
-    pub fn new(vm: Vm<A>) -> Self {
-        Self { vm }
+impl StaticService {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
-impl<A> Rpc for Service<A>
-where
-    A: Send + Sync + Clone + 'static,
-{
+impl Rpc for StaticService {
     fn ping(&self) -> BoxFuture<Result<crate::api::PingResponse>> {
         log::debug!("ping called");
         Box::pin(async move { Ok(crate::api::PingResponse { success: true }) })
+    }
+}
+#[derive(Clone)]
+pub struct StaticHandler {
+    pub handler: IoHandler,
+}
+
+impl StaticHandler {
+    pub fn new(service: StaticService) -> Self {
+        let mut handler = jsonrpc_core::IoHandler::new();
+        handler.extend_with(Rpc::to_delegate(service));
+        Self { handler }
+    }
+}
+
+#[tonic::async_trait]
+impl Handle for StaticHandler {
+    async fn request(
+        &self,
+        req: &Bytes,
+        _headers: &[Element],
+    ) -> std::io::Result<(Bytes, Vec<Element>)> {
+        match self.handler.handle_request(&de_request(req)?).await {
+            Some(resp) => Ok((Bytes::from(resp), Vec::new())),
+            None => Err(io::Error::new(
+                io::ErrorKind::Other,
+                "failed to handle request",
+            )),
+        }
     }
 }

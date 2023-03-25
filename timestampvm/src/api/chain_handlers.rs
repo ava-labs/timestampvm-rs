@@ -1,13 +1,16 @@
 //! Implements chain/VM specific handlers.
 //! To be served via `[HOST]/ext/bc/[CHAIN ID]/rpc`.
 
-use std::str::FromStr;
+use std::{io, marker::PhantomData, str::FromStr};
 
 use crate::{block::Block, vm::Vm};
-use avalanche_types::ids;
-use jsonrpc_core::{BoxFuture, Error, ErrorCode, Result};
+use avalanche_types::{ids, proto::http::Element, subnet::rpc::http::handle::Handle};
+use bytes::Bytes;
+use jsonrpc_core::{BoxFuture, Error, ErrorCode, IoHandler, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
+
+use super::de_request;
 
 /// Defines RPCs specific to the chain.
 #[rpc]
@@ -60,17 +63,18 @@ pub struct GetBlockResponse {
 }
 
 /// Implements API services for the chain-specific handlers.
-pub struct Service<A> {
+#[derive(Clone)]
+pub struct ChainService<A> {
     pub vm: Vm<A>,
 }
 
-impl<A> Service<A> {
+impl<A> ChainService<A> {
     pub fn new(vm: Vm<A>) -> Self {
         Self { vm }
     }
 }
 
-impl<A> Rpc for Service<A>
+impl<A> Rpc for ChainService<A>
 where
     A: Send + Sync + Clone + 'static,
 {
@@ -137,6 +141,43 @@ where
                 data: None,
             })
         })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ChainHandler<T> {
+    pub handler: IoHandler,
+    _marker: PhantomData<T>,
+}
+
+impl<T: Rpc> ChainHandler<T> {
+    pub fn new(service: T) -> Self {
+        let mut handler = jsonrpc_core::IoHandler::new();
+        handler.extend_with(Rpc::to_delegate(service));
+        Self {
+            handler,
+            _marker: PhantomData,
+        }
+    }
+}
+
+#[tonic::async_trait]
+impl<T> Handle for ChainHandler<T>
+where
+    T: Rpc + Send + Sync + Clone + 'static,
+{
+    async fn request(
+        &self,
+        req: &Bytes,
+        _headers: &[Element],
+    ) -> std::io::Result<(Bytes, Vec<Element>)> {
+        match self.handler.handle_request(&de_request(req)?).await {
+            Some(resp) => Ok((Bytes::from(resp), Vec::new())),
+            None => Err(io::Error::new(
+                io::ErrorKind::Other,
+                "failed to handle request",
+            )),
+        }
     }
 }
 
