@@ -171,7 +171,7 @@ where
         req: &Bytes,
         _headers: &[Element],
     ) -> std::io::Result<(Bytes, Vec<Element>)> {
-        match self.handler.handle_request(&de_request(&req)?).await {
+        match self.handler.handle_request(&de_request(req)?).await {
             Some(resp) => Ok((Bytes::from(resp), Vec::new())),
             None => Err(io::Error::new(
                 io::ErrorKind::Other,
