@@ -261,7 +261,7 @@ where
             vm_state.preferred = last_accepted_blk_id;
             log::info!("initialized Vm with last accepted block {last_accepted_blk_id}");
         } else {
-            let mut genesis_block = Block::new(
+            let mut genesis_block = Block::try_new(
                 ids::Id::empty(),
                 0,
                 0,
@@ -360,7 +360,7 @@ where
             let unix_now = Utc::now().timestamp() as u64;
 
             let first = mempool.pop_front().unwrap();
-            let mut block = Block::new(
+            let mut block = Block::try_new(
                 prnt_blk.id(),
                 prnt_blk.height() + 1,
                 unix_now,

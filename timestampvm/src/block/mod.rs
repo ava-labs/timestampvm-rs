@@ -50,7 +50,10 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(
+    /// Can fail if the block can't be serialized to JSON.
+    /// # Errors
+    /// Will fail if the block can't be serialized to JSON.
+    pub fn try_new(
         parent_id: ids::Id,
         height: u64,
         timestamp: u64,
@@ -270,7 +273,7 @@ async fn test_block() {
         .is_test(true)
         .try_init();
 
-    let mut genesis_blk = Block::new(
+    let mut genesis_blk = Block::try_new(
         ids::Id::empty(),
         0,
         Utc::now().timestamp() as u64,
@@ -308,7 +311,7 @@ async fn test_block() {
     let read_blk = state.get_block(&genesis_blk.id()).await.unwrap();
     assert_eq!(genesis_blk, read_blk);
 
-    let mut blk1 = Block::new(
+    let mut blk1 = Block::try_new(
         genesis_blk.id,
         genesis_blk.height + 1,
         genesis_blk.timestamp + 1,
@@ -332,7 +335,7 @@ async fn test_block() {
     let read_blk = state.get_block(&blk1.id()).await.unwrap();
     assert_eq!(blk1, read_blk);
 
-    let mut blk2 = Block::new(
+    let mut blk2 = Block::try_new(
         blk1.id,
         blk1.height + 1,
         blk1.timestamp + 1,
@@ -357,7 +360,7 @@ async fn test_block() {
     let read_blk = state.get_block(&blk2.id()).await.unwrap();
     assert_eq!(blk2, read_blk);
 
-    let mut blk3 = Block::new(
+    let mut blk3 = Block::try_new(
         blk2.id,
         blk2.height - 1,
         blk2.timestamp + 1,
@@ -373,7 +376,7 @@ async fn test_block() {
     assert!(state.has_last_accepted_block().await.unwrap());
 
     // blk4 built from blk2 has invalid timestamp built 2 hours in future
-    let mut blk4 = Block::new(
+    let mut blk4 = Block::try_new(
         blk2.id,
         blk2.height + 1,
         (Utc::now() + Duration::hours(2)).timestamp() as u64,

@@ -192,7 +192,7 @@ async fn test_state() {
         .is_test(true)
         .try_init();
 
-    let genesis_blk = Block::new(
+    let genesis_blk = Block::try_new(
         ids::Id::empty(),
         0,
         random_manager::u64(),
@@ -202,7 +202,7 @@ async fn test_state() {
     .unwrap();
     log::info!("genesis block: {genesis_blk}");
 
-    let blk1 = Block::new(
+    let blk1 = Block::try_new(
         genesis_blk.id(),
         1,
         genesis_blk.timestamp() + 1,
