@@ -17,17 +17,13 @@ pub struct Genesis {
 
 impl Default for Genesis {
     fn default() -> Self {
-        Self::default()
-    }
-}
-
-impl Genesis {
-    pub fn default() -> Self {
         Self {
             data: String::from("Hello from Rust VM!"),
         }
     }
+}
 
+impl Genesis {
     /// Encodes the genesis to JSON bytes.
     pub fn to_slice(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
