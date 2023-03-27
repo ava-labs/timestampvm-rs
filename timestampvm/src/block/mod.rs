@@ -19,7 +19,7 @@ use serde_with::serde_as;
 
 /// Represents a block, specific to [`Vm`](crate::vm::Vm).
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Derivative)]
+#[derive(Serialize, Deserialize, Clone, Derivative, Default)]
 #[derivative(Debug, PartialEq, Eq)]
 pub struct Block {
     /// The block Id of the parent block.
@@ -49,28 +49,7 @@ pub struct Block {
     state: state::State,
 }
 
-impl Default for Block {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Block {
-    pub fn default() -> Self {
-        Self {
-            parent_id: ids::Id::empty(),
-            height: 0,
-            timestamp: 0,
-            data: Vec::new(),
-
-            status: choices::status::Status::default(),
-            bytes: Vec::new(),
-            id: ids::Id::empty(),
-
-            state: state::State::default(),
-        }
-    }
-
     pub fn new(
         parent_id: ids::Id,
         height: u64,
