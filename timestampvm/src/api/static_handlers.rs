@@ -22,6 +22,7 @@ pub trait Rpc {
 pub struct StaticService {}
 
 impl StaticService {
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }
@@ -39,6 +40,7 @@ pub struct StaticHandler {
 }
 
 impl StaticHandler {
+    #[must_use]
     pub fn new(service: StaticService) -> Self {
         let mut handler = jsonrpc_core::IoHandler::new();
         handler.extend_with(Rpc::to_delegate(service));

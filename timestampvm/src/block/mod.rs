@@ -129,26 +129,31 @@ impl Block {
     }
 
     /// Returns the parent block Id.
+    #[must_use]
     pub fn parent_id(&self) -> ids::Id {
         self.parent_id
     }
 
     /// Returns the height of this block.
+    #[must_use]
     pub fn height(&self) -> u64 {
         self.height
     }
 
     /// Returns the timestamp of this block.
+    #[must_use]
     pub fn timestamp(&self) -> u64 {
         self.timestamp
     }
 
     /// Returns the data of this block.
+    #[must_use]
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
     /// Returns the status of this block.
+    #[must_use]
     pub fn status(&self) -> choices::status::Status {
         self.status.clone()
     }
@@ -159,11 +164,13 @@ impl Block {
     }
 
     /// Returns the byte representation of this block.
+    #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
 
     /// Returns the ID of this block
+    #[must_use]
     pub fn id(&self) -> ids::Id {
         self.id
     }

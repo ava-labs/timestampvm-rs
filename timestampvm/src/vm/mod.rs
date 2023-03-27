@@ -103,6 +103,7 @@ impl<A> Vm<A>
 where
     A: Send + Sync + Clone + 'static,
 {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             state: Arc::new(RwLock::new(VmState::default())),
