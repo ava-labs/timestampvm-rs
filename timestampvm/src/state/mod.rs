@@ -59,7 +59,7 @@ impl BlockWithStatus {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize BlockStatus to JSON bytes: {}", e),
+                format!("failed to serialize BlockStatus to JSON bytes: {e}"),
             )
         })
     }
@@ -69,7 +69,7 @@ impl BlockWithStatus {
         serde_json::from_slice(dd).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to deserialize BlockStatus from JSON: {}", e),
+                format!("failed to deserialize BlockStatus from JSON: {e}"),
             )
         })
     }
@@ -151,7 +151,7 @@ impl State {
 
         db.put(&block_with_status_key(&blk_id), &blk_status_bytes)
             .await
-            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {:?}", e)))
+            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {e:?}")))
     }
 
     /// Reads a block from the state storage using the block_with_status_key.

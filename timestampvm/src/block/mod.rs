@@ -97,7 +97,7 @@ impl Block {
         serde_json::to_string(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize Block to JSON string {}", e),
+                format!("failed to serialize Block to JSON string {e}"),
             )
         })
     }
@@ -107,7 +107,7 @@ impl Block {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize Block to JSON bytes {}", e),
+                format!("failed to serialize Block to JSON bytes {e}"),
             )
         })
     }
@@ -118,7 +118,7 @@ impl Block {
         let mut b: Self = serde_json::from_slice(dd).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to deserialize Block from JSON {}", e),
+                format!("failed to deserialize Block from JSON {e}"),
             )
         })?;
 

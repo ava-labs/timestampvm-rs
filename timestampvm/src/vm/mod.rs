@@ -142,10 +142,7 @@ where
             log::info!("limit exceeded... returning an error...");
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                format!(
-                    "data {}-byte exceeds the limit {}-byte",
-                    size, PROPOSE_LIMIT_BYTES
-                ),
+                format!("data {size}-byte exceeds the limit {PROPOSE_LIMIT_BYTES}-byte"),
             ));
         }
 

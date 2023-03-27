@@ -33,7 +33,7 @@ impl Genesis {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize Genesis to JSON bytes {}", e),
+                format!("failed to serialize Genesis to JSON bytes {e}"),
             )
         })
     }
@@ -43,7 +43,7 @@ impl Genesis {
         S: AsRef<[u8]>,
     {
         serde_json::from_slice(d.as_ref())
-            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to decode {}", e)))
+            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to decode {e}")))
     }
 
     /// Persists the genesis to a file.
@@ -57,7 +57,7 @@ impl Genesis {
         let d = serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize genesis info to JSON {}", e),
+                format!("failed to serialize genesis info to JSON {e}"),
             )
         })?;
 
@@ -71,6 +71,6 @@ impl Genesis {
 impl fmt::Display for Genesis {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = serde_json::to_string(&self).unwrap();
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }

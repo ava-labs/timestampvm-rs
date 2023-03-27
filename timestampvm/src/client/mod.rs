@@ -33,7 +33,7 @@ pub async fn ping(http_rpc: &str, url_path: &str) -> io::Result<PingResponse> {
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
 
     serde_json::from_slice(&rb)
-        .map_err(|e| Error::new(ErrorKind::Other, format!("failed ping '{}'", e)))
+        .map_err(|e| Error::new(ErrorKind::Other, format!("failed ping '{e}'")))
 }
 
 /// Represents the RPC response for API `last_accepted`.
@@ -61,7 +61,7 @@ pub async fn last_accepted(http_rpc: &str, url_path: &str) -> io::Result<LastAcc
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
 
     serde_json::from_slice(&rb)
-        .map_err(|e| Error::new(ErrorKind::Other, format!("failed last_accepted '{}'", e)))
+        .map_err(|e| Error::new(ErrorKind::Other, format!("failed last_accepted '{e}'")))
 }
 
 /// Represents the RPC response for API `get_block`.
@@ -99,7 +99,7 @@ pub async fn get_block(
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
 
     serde_json::from_slice(&rb)
-        .map_err(|e| Error::new(ErrorKind::Other, format!("failed get_block '{}'", e)))
+        .map_err(|e| Error::new(ErrorKind::Other, format!("failed get_block '{e}'")))
 }
 
 /// Represents the RPC response for API `propose_block`.
@@ -141,7 +141,7 @@ pub async fn propose_block(
     let rb = http_manager::post_non_tls(http_rpc, url_path, &d).await?;
 
     serde_json::from_slice(&rb)
-        .map_err(|e| Error::new(ErrorKind::Other, format!("failed propose_block '{}'", e)))
+        .map_err(|e| Error::new(ErrorKind::Other, format!("failed propose_block '{e}'")))
 }
 
 /// Represents the error (if any) for APIs.
