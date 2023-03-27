@@ -213,8 +213,14 @@ impl Block {
             ));
         }
 
+        let one_hour_from_now = Utc::now() + Duration::hours(1);
+        let one_hour_from_now = one_hour_from_now
+            .timestamp()
+            .try_into()
+            .expect("failed to convert timestamp from i64 to u64");
+
         // ensure block timestamp is no more than an hour ahead of this nodes time
-        if self.timestamp >= (Utc::now() + Duration::hours(1)).timestamp() as u64 {
+        if self.timestamp >= one_hour_from_now {
             return Err(Error::new(
                 ErrorKind::InvalidData,
                 format!(

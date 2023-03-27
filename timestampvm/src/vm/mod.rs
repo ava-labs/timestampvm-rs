@@ -357,7 +357,10 @@ where
             // "state" must have preferred block in cache/verified_block
             // otherwise, not found error from rpcchainvm database
             let prnt_blk = state.get_block(&vm_state.preferred).await?;
-            let unix_now = Utc::now().timestamp() as u64;
+            let unix_now = Utc::now()
+                .timestamp()
+                .try_into()
+                .expect("timestamp to convert from i64 to u64");
 
             let first = mempool.pop_front().unwrap();
             let mut block = Block::try_new(
