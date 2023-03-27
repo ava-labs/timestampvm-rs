@@ -47,7 +47,7 @@ pub const PROPOSE_LIMIT_BYTES: usize = 1024 * 1024;
 /// Represents VM-specific states.
 /// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
 /// To be protected with `Arc` and `RwLock`.
-pub struct VmState {
+pub struct State {
     pub ctx: Option<subnet::rpc::context::Context>,
     pub version: Version,
     pub genesis: Genesis,
@@ -63,7 +63,7 @@ pub struct VmState {
     pub bootstrapped: bool,
 }
 
-impl Default for VmState {
+impl Default for State {
     fn default() -> Self {
         Self {
             ctx: None,
@@ -82,7 +82,7 @@ impl Default for VmState {
 #[derive(Clone)]
 pub struct Vm<A> {
     /// Maintains the Vm-specific states.
-    pub state: Arc<RwLock<VmState>>,
+    pub state: Arc<RwLock<State>>,
     pub app_sender: Option<A>,
 
     /// A queue of data that have not been put into a block and proposed yet.
@@ -106,7 +106,7 @@ where
     #[must_use]
     pub fn new() -> Self {
         Self {
-            state: Arc::new(RwLock::new(VmState::default())),
+            state: Arc::new(RwLock::new(State::default())),
             app_sender: None,
             mempool: Arc::new(RwLock::new(VecDeque::with_capacity(100))),
         }
