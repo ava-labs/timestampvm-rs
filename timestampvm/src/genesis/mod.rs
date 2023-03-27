@@ -54,7 +54,7 @@ impl Genesis {
         log::info!("syncing genesis to '{}'", file_path);
 
         let path = Path::new(file_path);
-        let parent_dir = path.parent().unwrap();
+        let parent_dir = path.parent().expect("Invalid path");
         fs::create_dir_all(parent_dir)?;
 
         let d = serde_json::to_vec(&self).map_err(|e| {
