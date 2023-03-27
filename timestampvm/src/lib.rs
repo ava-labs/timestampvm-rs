@@ -2,7 +2,7 @@
 //!
 //! This project implements timestampvm that allows anyone to propose and read
 //! blocks, each of which is tagged with the proposed timestamp. It implements
-//! the snowman block.ChainVM interface in Rust, pluggable to AvalancheGo nodes.
+//! the snowman block.ChainVM interface in Rust, pluggable to `AvalancheGo` nodes.
 //!
 //! See [`ava-labs/timestampvm`](https://github.com/ava-labs/timestampvm) for the original Go implementation.
 //!

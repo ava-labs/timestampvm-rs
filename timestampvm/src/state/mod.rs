@@ -37,7 +37,7 @@ const STATUS_PREFIX: u8 = 0x0;
 const DELIMITER: u8 = b'/';
 
 /// Returns a vec of bytes used as a key for identifying blocks in state.
-/// 'STATUS_PREFIX' + 'BYTE_DELIMITER' + [block_id]
+/// '`STATUS_PREFIX`' + '`BYTE_DELIMITER`' + [`block_id`]
 fn block_with_status_key(blk_id: &ids::Id) -> Vec<u8> {
     let mut k: Vec<u8> = Vec::with_capacity(ids::LEN + 2);
     k.push(STATUS_PREFIX);
@@ -121,7 +121,7 @@ impl State {
         }
     }
 
-    /// Adds a block to "verified_blocks".
+    /// Adds a block to "`verified_blocks`".
     pub async fn add_verified(&mut self, block: &Block) {
         let blk_id = block.id();
         log::info!("verified added {blk_id}");
@@ -130,7 +130,7 @@ impl State {
         verified_blocks.insert(blk_id, block.clone());
     }
 
-    /// Removes a block from "verified_blocks".
+    /// Removes a block from "`verified_blocks`".
     pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
         let mut verified_blocks = self.verified_blocks.write().await;
         verified_blocks.remove(blk_id);

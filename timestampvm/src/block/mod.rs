@@ -263,9 +263,6 @@ impl Block {
     }
 }
 
-/// ref. https://doc.rust-lang.org/std/string/trait.ToString.html
-/// ref. https://doc.rust-lang.org/std/fmt/trait.Display.html
-/// Use "Self.to_string()" to directly invoke this
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let serialized = self.to_json_string().unwrap();
