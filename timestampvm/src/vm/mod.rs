@@ -134,6 +134,8 @@ where
 
     /// Proposes arbitrary data to mempool and notifies that a block is ready for builds.
     /// Other VMs may optimize mempool with more complicated batching mechanisms.
+    /// # Errors
+    /// Can fail if the data size exceeds `PROPOSE_LIMIT_BYTES`.
     pub async fn propose_block(&self, d: Vec<u8>) -> io::Result<()> {
         let size = d.len();
         log::info!("received propose_block of {size} bytes");
@@ -155,6 +157,8 @@ where
     }
 
     /// Sets the state of the Vm.
+    /// # Errors
+    /// Will fail if the `snow::State` is syncing
     pub async fn set_state(&self, snow_state: snow::State) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
         match snow_state {
@@ -195,6 +199,8 @@ where
     }
 
     /// Returns the last accepted block Id.
+    /// # Errors
+    /// Will fail if there's no state or if the db can't be accessed
     pub async fn last_accepted(&self) -> io::Result<ids::Id> {
         let vm_state = self.state.read().await;
         if let Some(state) = &vm_state.state {

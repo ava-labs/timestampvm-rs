@@ -93,6 +93,8 @@ impl Block {
         Ok(b)
     }
 
+    /// # Errors
+    /// Can fail if the block can't be serialized to JSON.
     pub fn to_json_string(&self) -> io::Result<String> {
         serde_json::to_string(&self).map_err(|e| {
             Error::new(
@@ -113,6 +115,8 @@ impl Block {
     }
 
     /// Loads [`Block`](Block) from JSON bytes.
+    /// # Errors
+    /// Will fail if the block can't be deserialized from JSON.
     pub fn from_slice(d: impl AsRef<[u8]>) -> io::Result<Self> {
         let dd = d.as_ref();
         let mut b: Self = serde_json::from_slice(dd).map_err(|e| {
@@ -182,6 +186,8 @@ impl Block {
 
     /// Verifies [`Block`](Block) properties (e.g., heights),
     /// and once verified, records it to the [`State`](crate::state::State).
+    /// # Errors
+    /// Can fail if the parent block can't be retrieved.
     pub async fn verify(&mut self) -> io::Result<()> {
         if self.height == 0 && self.parent_id == ids::Id::empty() {
             log::debug!(
@@ -240,6 +246,8 @@ impl Block {
     }
 
     /// Mark this [`Block`](Block) accepted and updates [`State`](crate::state::State) accordingly.
+    /// # Errors
+    /// Returns an error if the state can't be updated.
     pub async fn accept(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Accepted);
 
@@ -252,6 +260,8 @@ impl Block {
     }
 
     /// Mark this [`Block`](Block) rejected and updates [`State`](crate::state::State) accordingly.
+    /// # Errors
+    /// Returns an error if the state can't be updated.
     pub async fn reject(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Rejected);
 

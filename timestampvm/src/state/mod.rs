@@ -77,6 +77,8 @@ impl BlockWithStatus {
 
 impl State {
     /// Persists the last accepted block Id to state.
+    /// # Errors
+    /// Fails if the db can't be updated
     pub async fn set_last_accepted_block(&self, blk_id: &ids::Id) -> io::Result<()> {
         let mut db = self.db.write().await;
         db.put(LAST_ACCEPTED_BLOCK_KEY, &blk_id.to_vec())
@@ -84,24 +86,28 @@ impl State {
             .map_err(|e| {
                 Error::new(
                     ErrorKind::Other,
-                    format!("failed to put last accepted block: {:?}", e),
+                    format!("failed to put last accepted block: {e:?}"),
                 )
             })
     }
 
     /// Returns "true" if there's a last accepted block found.
+    /// # Errors
+    /// Fails if the db can't be read
     pub async fn has_last_accepted_block(&self) -> io::Result<bool> {
         let db = self.db.read().await;
         match db.has(LAST_ACCEPTED_BLOCK_KEY).await {
             Ok(found) => Ok(found),
             Err(e) => Err(Error::new(
                 ErrorKind::Other,
-                format!("failed to load last accepted block: {}", e),
+                format!("failed to load last accepted block: {e}"),
             )),
         }
     }
 
     /// Returns the last accepted block Id from state.
+    /// # Errors
+    /// Can fail if the db can't be read
     pub async fn get_last_accepted_block_id(&self) -> io::Result<ids::Id> {
         let db = self.db.read().await;
         match db.get(LAST_ACCEPTED_BLOCK_KEY).await {
@@ -137,6 +143,8 @@ impl State {
     }
 
     /// Writes a block to the state storage.
+    /// # Errors
+    /// Can fail if the block fails to serialize or if the db can't be updated
     pub async fn write_block(&mut self, block: &Block) -> io::Result<()> {
         let blk_id = block.id();
         let blk_bytes = block.to_slice()?;
@@ -154,7 +162,9 @@ impl State {
             .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {e:?}")))
     }
 
-    /// Reads a block from the state storage using the block_with_status_key.
+    /// Reads a block from the state storage using the `block_with_status_key`.
+    /// # Errors
+    /// Can fail if the block is not found in the state storage, or if the block fails to deserialize
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
         // check if the block exists in memory as previously verified.
         let verified_blocks = self.verified_blocks.read().await;

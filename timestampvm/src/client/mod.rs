@@ -23,6 +23,8 @@ pub struct PingResponse {
 }
 
 /// Ping the VM.
+/// # Errors
+/// Errors on an http failure or a failed deserialization.
 pub async fn ping(http_rpc: &str, url_path: &str) -> io::Result<PingResponse> {
     log::info!("ping {http_rpc} with {url_path}");
 
@@ -51,6 +53,8 @@ pub struct LastAcceptedResponse {
 }
 
 /// Requests for the last accepted block Id.
+/// # Errors
+/// Errors on failed (de)serialization or an http failure.
 pub async fn last_accepted(http_rpc: &str, url_path: &str) -> io::Result<LastAcceptedResponse> {
     log::info!("last_accepted {http_rpc} with {url_path}");
 
@@ -79,6 +83,8 @@ pub struct GetBlockResponse {
 }
 
 /// Fetches the block for the corresponding block Id (if any).
+/// # Errors
+/// Errors on failed (de)serialization or an http failure.
 pub async fn get_block(
     http_rpc: &str,
     url_path: &str,
@@ -118,6 +124,8 @@ pub struct ProposeBlockResponse {
 }
 
 /// Proposes arbitrary data.
+/// # Errors
+/// Errors on failed (de)serialization or an http failure.
 pub async fn propose_block(
     http_rpc: &str,
     url_path: &str,

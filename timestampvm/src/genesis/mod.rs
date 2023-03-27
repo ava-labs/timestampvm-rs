@@ -38,6 +38,9 @@ impl Genesis {
         })
     }
 
+    /// Decodes the genesis from JSON bytes.
+    /// # Errors
+    /// Fails if the bytes can't be deserialized
     pub fn from_slice<S>(d: S) -> io::Result<Self>
     where
         S: AsRef<[u8]>,
@@ -47,6 +50,8 @@ impl Genesis {
     }
 
     /// Persists the genesis to a file.
+    /// # Errors
+    /// Fails if the file can't be created, written to, or if `self` can't be serialized
     pub fn sync(&self, file_path: &str) -> io::Result<()> {
         log::info!("syncing genesis to '{}'", file_path);
 
