@@ -19,7 +19,7 @@ use serde_with::serde_as;
 
 /// Represents a block, specific to [`Vm`](crate::vm::Vm).
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Derivative)]
+#[derive(Serialize, Deserialize, Clone, Derivative, Default)]
 #[derivative(Debug, PartialEq, Eq)]
 pub struct Block {
     /// The block Id of the parent block.
@@ -49,29 +49,11 @@ pub struct Block {
     state: state::State,
 }
 
-impl Default for Block {
-    fn default() -> Self {
-        Self::default()
-    }
-}
-
 impl Block {
-    pub fn default() -> Self {
-        Self {
-            parent_id: ids::Id::empty(),
-            height: 0,
-            timestamp: 0,
-            data: Vec::new(),
-
-            status: choices::status::Status::default(),
-            bytes: Vec::new(),
-            id: ids::Id::empty(),
-
-            state: state::State::default(),
-        }
-    }
-
-    pub fn new(
+    /// Can fail if the block can't be serialized to JSON.
+    /// # Errors
+    /// Will fail if the block can't be serialized to JSON.
+    pub fn try_new(
         parent_id: ids::Id,
         height: u64,
         timestamp: u64,
@@ -87,38 +69,44 @@ impl Block {
         };
 
         b.status = status;
-        b.bytes = b.to_slice()?;
+        b.bytes = b.to_vec()?;
         b.id = ids::Id::sha256(&b.bytes);
 
         Ok(b)
     }
 
+    /// # Errors
+    /// Can fail if the block can't be serialized to JSON.
     pub fn to_json_string(&self) -> io::Result<String> {
         serde_json::to_string(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize Block to JSON string {}", e),
+                format!("failed to serialize Block to JSON string {e}"),
             )
         })
     }
 
     /// Encodes the [`Block`](Block) to JSON in bytes.
-    pub fn to_slice(&self) -> io::Result<Vec<u8>> {
+    /// # Errors
+    /// Errors if the block can't be serialized to JSON.
+    pub fn to_vec(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize Block to JSON bytes {}", e),
+                format!("failed to serialize Block to JSON bytes {e}"),
             )
         })
     }
 
     /// Loads [`Block`](Block) from JSON bytes.
+    /// # Errors
+    /// Will fail if the block can't be deserialized from JSON.
     pub fn from_slice(d: impl AsRef<[u8]>) -> io::Result<Self> {
         let dd = d.as_ref();
         let mut b: Self = serde_json::from_slice(dd).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to deserialize Block from JSON {}", e),
+                format!("failed to deserialize Block from JSON {e}"),
             )
         })?;
 
@@ -129,26 +117,31 @@ impl Block {
     }
 
     /// Returns the parent block Id.
+    #[must_use]
     pub fn parent_id(&self) -> ids::Id {
         self.parent_id
     }
 
     /// Returns the height of this block.
+    #[must_use]
     pub fn height(&self) -> u64 {
         self.height
     }
 
     /// Returns the timestamp of this block.
+    #[must_use]
     pub fn timestamp(&self) -> u64 {
         self.timestamp
     }
 
     /// Returns the data of this block.
+    #[must_use]
     pub fn data(&self) -> &[u8] {
         &self.data
     }
 
     /// Returns the status of this block.
+    #[must_use]
     pub fn status(&self) -> choices::status::Status {
         self.status.clone()
     }
@@ -159,11 +152,13 @@ impl Block {
     }
 
     /// Returns the byte representation of this block.
+    #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
 
     /// Returns the ID of this block
+    #[must_use]
     pub fn id(&self) -> ids::Id {
         self.id
     }
@@ -175,6 +170,8 @@ impl Block {
 
     /// Verifies [`Block`](Block) properties (e.g., heights),
     /// and once verified, records it to the [`State`](crate::state::State).
+    /// # Errors
+    /// Can fail if the parent block can't be retrieved.
     pub async fn verify(&mut self) -> io::Result<()> {
         if self.height == 0 && self.parent_id == ids::Id::empty() {
             log::debug!(
@@ -216,8 +213,14 @@ impl Block {
             ));
         }
 
+        let one_hour_from_now = Utc::now() + Duration::hours(1);
+        let one_hour_from_now = one_hour_from_now
+            .timestamp()
+            .try_into()
+            .expect("failed to convert timestamp from i64 to u64");
+
         // ensure block timestamp is no more than an hour ahead of this nodes time
-        if self.timestamp >= (Utc::now() + Duration::hours(1)).timestamp() as u64 {
+        if self.timestamp >= one_hour_from_now {
             return Err(Error::new(
                 ErrorKind::InvalidData,
                 format!(
@@ -233,6 +236,8 @@ impl Block {
     }
 
     /// Mark this [`Block`](Block) accepted and updates [`State`](crate::state::State) accordingly.
+    /// # Errors
+    /// Returns an error if the state can't be updated.
     pub async fn accept(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Accepted);
 
@@ -245,6 +250,8 @@ impl Block {
     }
 
     /// Mark this [`Block`](Block) rejected and updates [`State`](crate::state::State) accordingly.
+    /// # Errors
+    /// Returns an error if the state can't be updated.
     pub async fn reject(&mut self) -> io::Result<()> {
         self.set_status(choices::status::Status::Rejected);
 
@@ -256,9 +263,6 @@ impl Block {
     }
 }
 
-/// ref. https://doc.rust-lang.org/std/string/trait.ToString.html
-/// ref. https://doc.rust-lang.org/std/fmt/trait.Display.html
-/// Use "Self.to_string()" to directly invoke this
 impl fmt::Display for Block {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let serialized = self.to_json_string().unwrap();
@@ -274,7 +278,7 @@ async fn test_block() {
         .is_test(true)
         .try_init();
 
-    let mut genesis_blk = Block::new(
+    let mut genesis_blk = Block::try_new(
         ids::Id::empty(),
         0,
         Utc::now().timestamp() as u64,
@@ -284,7 +288,7 @@ async fn test_block() {
     .unwrap();
     log::info!("deserialized: {genesis_blk} (block Id: {})", genesis_blk.id);
 
-    let serialized = genesis_blk.to_slice().unwrap();
+    let serialized = genesis_blk.to_vec().unwrap();
     let deserialized = Block::from_slice(&serialized).unwrap();
     log::info!("deserialized: {deserialized}");
 
@@ -312,7 +316,7 @@ async fn test_block() {
     let read_blk = state.get_block(&genesis_blk.id()).await.unwrap();
     assert_eq!(genesis_blk, read_blk);
 
-    let mut blk1 = Block::new(
+    let mut blk1 = Block::try_new(
         genesis_blk.id,
         genesis_blk.height + 1,
         genesis_blk.timestamp + 1,
@@ -336,7 +340,7 @@ async fn test_block() {
     let read_blk = state.get_block(&blk1.id()).await.unwrap();
     assert_eq!(blk1, read_blk);
 
-    let mut blk2 = Block::new(
+    let mut blk2 = Block::try_new(
         blk1.id,
         blk1.height + 1,
         blk1.timestamp + 1,
@@ -361,7 +365,7 @@ async fn test_block() {
     let read_blk = state.get_block(&blk2.id()).await.unwrap();
     assert_eq!(blk2, read_blk);
 
-    let mut blk3 = Block::new(
+    let mut blk3 = Block::try_new(
         blk2.id,
         blk2.height - 1,
         blk2.timestamp + 1,
@@ -377,7 +381,7 @@ async fn test_block() {
     assert!(state.has_last_accepted_block().await.unwrap());
 
     // blk4 built from blk2 has invalid timestamp built 2 hours in future
-    let mut blk4 = Block::new(
+    let mut blk4 = Block::try_new(
         blk2.id,
         blk2.height + 1,
         (Utc::now() + Duration::hours(2)).timestamp() as u64,

@@ -37,7 +37,7 @@ const STATUS_PREFIX: u8 = 0x0;
 const DELIMITER: u8 = b'/';
 
 /// Returns a vec of bytes used as a key for identifying blocks in state.
-/// 'STATUS_PREFIX' + 'BYTE_DELIMITER' + [block_id]
+/// '`STATUS_PREFIX`' + '`BYTE_DELIMITER`' + [`block_id`]
 fn block_with_status_key(blk_id: &ids::Id) -> Vec<u8> {
     let mut k: Vec<u8> = Vec::with_capacity(ids::LEN + 2);
     k.push(STATUS_PREFIX);
@@ -59,7 +59,7 @@ impl BlockWithStatus {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to serialize BlockStatus to JSON bytes: {}", e),
+                format!("failed to serialize BlockStatus to JSON bytes: {e}"),
             )
         })
     }
@@ -69,7 +69,7 @@ impl BlockWithStatus {
         serde_json::from_slice(dd).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("failed to deserialize BlockStatus from JSON: {}", e),
+                format!("failed to deserialize BlockStatus from JSON: {e}"),
             )
         })
     }
@@ -77,6 +77,8 @@ impl BlockWithStatus {
 
 impl State {
     /// Persists the last accepted block Id to state.
+    /// # Errors
+    /// Fails if the db can't be updated
     pub async fn set_last_accepted_block(&self, blk_id: &ids::Id) -> io::Result<()> {
         let mut db = self.db.write().await;
         db.put(LAST_ACCEPTED_BLOCK_KEY, &blk_id.to_vec())
@@ -84,24 +86,28 @@ impl State {
             .map_err(|e| {
                 Error::new(
                     ErrorKind::Other,
-                    format!("failed to put last accepted block: {:?}", e),
+                    format!("failed to put last accepted block: {e:?}"),
                 )
             })
     }
 
     /// Returns "true" if there's a last accepted block found.
+    /// # Errors
+    /// Fails if the db can't be read
     pub async fn has_last_accepted_block(&self) -> io::Result<bool> {
         let db = self.db.read().await;
         match db.has(LAST_ACCEPTED_BLOCK_KEY).await {
             Ok(found) => Ok(found),
             Err(e) => Err(Error::new(
                 ErrorKind::Other,
-                format!("failed to load last accepted block: {}", e),
+                format!("failed to load last accepted block: {e}"),
             )),
         }
     }
 
     /// Returns the last accepted block Id from state.
+    /// # Errors
+    /// Can fail if the db can't be read
     pub async fn get_last_accepted_block_id(&self) -> io::Result<ids::Id> {
         let db = self.db.read().await;
         match db.get(LAST_ACCEPTED_BLOCK_KEY).await {
@@ -115,7 +121,7 @@ impl State {
         }
     }
 
-    /// Adds a block to "verified_blocks".
+    /// Adds a block to "`verified_blocks`".
     pub async fn add_verified(&mut self, block: &Block) {
         let blk_id = block.id();
         log::info!("verified added {blk_id}");
@@ -124,7 +130,7 @@ impl State {
         verified_blocks.insert(blk_id, block.clone());
     }
 
-    /// Removes a block from "verified_blocks".
+    /// Removes a block from "`verified_blocks`".
     pub async fn remove_verified(&mut self, blk_id: &ids::Id) {
         let mut verified_blocks = self.verified_blocks.write().await;
         verified_blocks.remove(blk_id);
@@ -137,9 +143,11 @@ impl State {
     }
 
     /// Writes a block to the state storage.
+    /// # Errors
+    /// Can fail if the block fails to serialize or if the db can't be updated
     pub async fn write_block(&mut self, block: &Block) -> io::Result<()> {
         let blk_id = block.id();
-        let blk_bytes = block.to_slice()?;
+        let blk_bytes = block.to_vec()?;
 
         let mut db = self.db.write().await;
 
@@ -151,10 +159,12 @@ impl State {
 
         db.put(&block_with_status_key(&blk_id), &blk_status_bytes)
             .await
-            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {:?}", e)))
+            .map_err(|e| Error::new(ErrorKind::Other, format!("failed to put block: {e:?}")))
     }
 
-    /// Reads a block from the state storage using the block_with_status_key.
+    /// Reads a block from the state storage using the `block_with_status_key`.
+    /// # Errors
+    /// Can fail if the block is not found in the state storage, or if the block fails to deserialize
     pub async fn get_block(&self, blk_id: &ids::Id) -> io::Result<Block> {
         // check if the block exists in memory as previously verified.
         let verified_blocks = self.verified_blocks.read().await;
@@ -182,7 +192,7 @@ async fn test_state() {
         .is_test(true)
         .try_init();
 
-    let genesis_blk = Block::new(
+    let genesis_blk = Block::try_new(
         ids::Id::empty(),
         0,
         random_manager::u64(),
@@ -192,7 +202,7 @@ async fn test_state() {
     .unwrap();
     log::info!("genesis block: {genesis_blk}");
 
-    let blk1 = Block::new(
+    let blk1 = Block::try_new(
         genesis_blk.id(),
         1,
         genesis_blk.timestamp() + 1,

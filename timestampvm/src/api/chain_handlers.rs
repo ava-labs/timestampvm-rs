@@ -1,13 +1,12 @@
 //! Implements chain/VM specific handlers.
 //! To be served via `[HOST]/ext/bc/[CHAIN ID]/rpc`.
 
-use std::str::FromStr;
-
 use crate::{block::Block, vm::Vm};
 use avalanche_types::ids;
 use jsonrpc_core::{BoxFuture, Error, ErrorCode, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
+use std::{io, str::FromStr};
 
 /// Defines RPCs specific to the chain.
 #[rpc]
@@ -140,8 +139,9 @@ where
     }
 }
 
-fn create_jsonrpc_error(e: std::io::Error) -> Error {
+#[allow(clippy::needless_pass_by_value)]
+fn create_jsonrpc_error(e: io::Error) -> Error {
     let mut error = Error::new(ErrorCode::InternalError);
-    error.message = format!("{}", e);
+    error.message = format!("{e}");
     error
 }

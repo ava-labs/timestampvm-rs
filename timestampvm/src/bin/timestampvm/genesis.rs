@@ -2,6 +2,7 @@ use clap::{arg, Command};
 
 pub const NAME: &str = "genesis";
 
+#[must_use]
 pub fn command() -> Command {
     Command::new(NAME)
         .about("Write a genesis file")
