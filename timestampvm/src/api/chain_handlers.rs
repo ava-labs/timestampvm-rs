@@ -7,7 +7,7 @@ use bytes::Bytes;
 use jsonrpc_core::{BoxFuture, Error, ErrorCode, IoHandler, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
-use std::{io, marker::PhantomData, str::FromStr};
+use std::{borrow::Borrow, io, marker::PhantomData, str::FromStr};
 
 use super::de_request;
 
@@ -180,7 +180,8 @@ where
     }
 }
 
-fn create_jsonrpc_error(e: std::io::Error) -> Error {
+fn create_jsonrpc_error<E: Borrow<std::io::Error>>(e: E) -> Error {
+    let e = e.borrow();
     let mut error = Error::new(ErrorCode::InternalError);
     error.message = format!("{e}");
     error
