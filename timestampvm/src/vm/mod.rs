@@ -190,24 +190,16 @@ where
         }
     }
 
-    /// Sets the container preference of the Vm.
-    pub async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
-        let mut vm_state = self.state.write().await;
-        vm_state.preferred = id;
-
-        Ok(())
-    }
-
     /// Returns the last accepted block Id.
     /// # Errors
     /// Will fail if there's no state or if the db can't be accessed
     pub async fn last_accepted(&self) -> io::Result<ids::Id> {
         let vm_state = self.state.read().await;
-        if let Some(state) = &vm_state.state {
-            let blk_id = state.get_last_accepted_block_id().await?;
-            return Ok(blk_id);
+
+        match &vm_state.state {
+            Some(state) => state.get_last_accepted_block_id().await,
+            None => Err(Error::new(ErrorKind::NotFound, "state manager not found")),
         }
-        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 }
 
@@ -381,7 +373,10 @@ where
     }
 
     async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
-        self.set_preference(id).await
+        let mut vm_state = self.state.write().await;
+        vm_state.preferred = id;
+
+        Ok(())
     }
 
     async fn last_accepted(&self) -> io::Result<ids::Id> {

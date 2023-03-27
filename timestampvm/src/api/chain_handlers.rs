@@ -1,14 +1,13 @@
 //! Implements chain/VM specific handlers.
 //! To be served via `[HOST]/ext/bc/[CHAIN ID]/rpc`.
 
-use std::{io, marker::PhantomData, str::FromStr};
-
 use crate::{block::Block, vm::Vm};
 use avalanche_types::{ids, proto::http::Element, subnet::rpc::http::handle::Handle};
 use bytes::Bytes;
 use jsonrpc_core::{BoxFuture, Error, ErrorCode, IoHandler, Result};
 use jsonrpc_derive::rpc;
 use serde::{Deserialize, Serialize};
+use std::{io, marker::PhantomData, str::FromStr};
 
 use super::de_request;
 
