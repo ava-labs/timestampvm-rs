@@ -147,7 +147,7 @@ impl State {
     /// Can fail if the block fails to serialize or if the db can't be updated
     pub async fn write_block(&mut self, block: &Block) -> io::Result<()> {
         let blk_id = block.id();
-        let blk_bytes = block.to_slice()?;
+        let blk_bytes = block.to_vec()?;
 
         let mut db = self.db.write().await;
 

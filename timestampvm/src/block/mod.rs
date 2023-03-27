@@ -69,7 +69,7 @@ impl Block {
         };
 
         b.status = status;
-        b.bytes = b.to_slice()?;
+        b.bytes = b.to_vec()?;
         b.id = ids::Id::sha256(&b.bytes);
 
         Ok(b)
@@ -87,7 +87,9 @@ impl Block {
     }
 
     /// Encodes the [`Block`](Block) to JSON in bytes.
-    pub fn to_slice(&self) -> io::Result<Vec<u8>> {
+    /// # Errors
+    /// Errors if the block can't be serialized to JSON.
+    pub fn to_vec(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
@@ -283,7 +285,7 @@ async fn test_block() {
     .unwrap();
     log::info!("deserialized: {genesis_blk} (block Id: {})", genesis_blk.id);
 
-    let serialized = genesis_blk.to_slice().unwrap();
+    let serialized = genesis_blk.to_vec().unwrap();
     let deserialized = Block::from_slice(&serialized).unwrap();
     log::info!("deserialized: {deserialized}");
 

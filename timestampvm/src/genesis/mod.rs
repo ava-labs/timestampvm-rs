@@ -25,7 +25,9 @@ impl Default for Genesis {
 
 impl Genesis {
     /// Encodes the genesis to JSON bytes.
-    pub fn to_slice(&self) -> io::Result<Vec<u8>> {
+    /// # Errors
+    /// Fails if `Self` can't be serialized
+    pub fn to_vec(&self) -> io::Result<Vec<u8>> {
         serde_json::to_vec(&self).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
