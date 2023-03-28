@@ -47,7 +47,7 @@ pub const PROPOSE_LIMIT_BYTES: usize = 1024 * 1024;
 /// Represents VM-specific states.
 /// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
 /// To be protected with `Arc` and `RwLock`.
-pub struct VmState {
+pub struct State {
     pub ctx: Option<subnet::rpc::context::Context>,
     pub version: Version,
     pub genesis: Genesis,
@@ -63,7 +63,7 @@ pub struct VmState {
     pub bootstrapped: bool,
 }
 
-impl Default for VmState {
+impl Default for State {
     fn default() -> Self {
         Self {
             ctx: None,
@@ -82,7 +82,7 @@ impl Default for VmState {
 #[derive(Clone)]
 pub struct Vm<A> {
     /// Maintains the Vm-specific states.
-    pub state: Arc<RwLock<VmState>>,
+    pub state: Arc<RwLock<State>>,
     pub app_sender: Option<A>,
 
     /// A queue of data that have not been put into a block and proposed yet.
@@ -103,9 +103,10 @@ impl<A> Vm<A>
 where
     A: Send + Sync + Clone + 'static,
 {
+    #[must_use]
     pub fn new() -> Self {
         Self {
-            state: Arc::new(RwLock::new(VmState::default())),
+            state: Arc::new(RwLock::new(State::default())),
             app_sender: None,
             mempool: Arc::new(RwLock::new(VecDeque::with_capacity(100))),
         }
@@ -133,6 +134,8 @@ where
 
     /// Proposes arbitrary data to mempool and notifies that a block is ready for builds.
     /// Other VMs may optimize mempool with more complicated batching mechanisms.
+    /// # Errors
+    /// Can fail if the data size exceeds `PROPOSE_LIMIT_BYTES`.
     pub async fn propose_block(&self, d: Vec<u8>) -> io::Result<()> {
         let size = d.len();
         log::info!("received propose_block of {size} bytes");
@@ -141,10 +144,7 @@ where
             log::info!("limit exceeded... returning an error...");
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                format!(
-                    "data {}-byte exceeds the limit {}-byte",
-                    size, PROPOSE_LIMIT_BYTES
-                ),
+                format!("data {size}-byte exceeds the limit {PROPOSE_LIMIT_BYTES}-byte"),
             ));
         }
 
@@ -157,6 +157,8 @@ where
     }
 
     /// Sets the state of the Vm.
+    /// # Errors
+    /// Will fail if the `snow::State` is syncing
     pub async fn set_state(&self, snow_state: snow::State) -> io::Result<()> {
         let mut vm_state = self.state.write().await;
         match snow_state {
@@ -188,22 +190,16 @@ where
         }
     }
 
-    /// Sets the container preference of the Vm.
-    pub async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
-        let mut vm_state = self.state.write().await;
-        vm_state.preferred = id;
-
-        Ok(())
-    }
-
     /// Returns the last accepted block Id.
+    /// # Errors
+    /// Will fail if there's no state or if the db can't be accessed
     pub async fn last_accepted(&self) -> io::Result<ids::Id> {
         let vm_state = self.state.read().await;
-        if let Some(state) = &vm_state.state {
-            let blk_id = state.get_last_accepted_block_id().await?;
-            return Ok(blk_id);
+
+        match &vm_state.state {
+            Some(state) => state.get_last_accepted_block_id().await,
+            None => Err(Error::new(ErrorKind::NotFound, "state manager not found")),
         }
-        Err(Error::new(ErrorKind::NotFound, "state manager not found"))
     }
 }
 
@@ -257,7 +253,7 @@ where
             vm_state.preferred = last_accepted_blk_id;
             log::info!("initialized Vm with last accepted block {last_accepted_blk_id}");
         } else {
-            let mut genesis_block = Block::new(
+            let mut genesis_block = Block::try_new(
                 ids::Id::empty(),
                 0,
                 0,
@@ -353,10 +349,13 @@ where
             // "state" must have preferred block in cache/verified_block
             // otherwise, not found error from rpcchainvm database
             let prnt_blk = state.get_block(&vm_state.preferred).await?;
-            let unix_now = Utc::now().timestamp() as u64;
+            let unix_now = Utc::now()
+                .timestamp()
+                .try_into()
+                .expect("timestamp to convert from i64 to u64");
 
             let first = mempool.pop_front().unwrap();
-            let mut block = Block::new(
+            let mut block = Block::try_new(
                 prnt_blk.id(),
                 prnt_blk.height() + 1,
                 unix_now,
@@ -374,7 +373,10 @@ where
     }
 
     async fn set_preference(&self, id: ids::Id) -> io::Result<()> {
-        self.set_preference(id).await
+        let mut vm_state = self.state.write().await;
+        vm_state.preferred = id;
+
+        Ok(())
     }
 
     async fn last_accepted(&self) -> io::Result<ids::Id> {

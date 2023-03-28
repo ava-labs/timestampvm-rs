@@ -16,6 +16,8 @@ pub struct PingResponse {
 }
 
 /// Deserializes JSON-RPC method call.
+/// # Errors
+/// Fails if the request is not a valid JSON-RPC method call.
 pub fn de_request(req: &Bytes) -> io::Result<String> {
     let method_call: MethodCall = serde_json::from_slice(req).map_err(|e| {
         io::Error::new(

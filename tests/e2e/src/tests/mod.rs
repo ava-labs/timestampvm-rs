@@ -204,7 +204,7 @@ async fn e2e() {
     log::info!("network Id: {}", network_id);
 
     log::info!("ping static handlers");
-    let static_url_path = format!("ext/vm/{}/static", vm_id);
+    let static_url_path = format!("ext/vm/{vm_id}/static");
     for ep in rpc_eps.iter() {
         let resp = timestampvm::client::ping(ep.as_str(), &static_url_path)
             .await
@@ -216,7 +216,7 @@ async fn e2e() {
     }
 
     log::info!("ping chain handlers");
-    let chain_url_path = format!("ext/bc/{}/rpc", blockchain_id);
+    let chain_url_path = format!("ext/bc/{blockchain_id}/rpc");
     for ep in rpc_eps.iter() {
         let resp = timestampvm::client::ping(ep.as_str(), &chain_url_path)
             .await
