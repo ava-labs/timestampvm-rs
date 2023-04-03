@@ -28,7 +28,7 @@ serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93" # https://github.com/serde-rs/json/releases
 serde_with = { version = "2.2.0", features = ["hex"] }
 tokio = { version = "1.25.0", features = ["fs", "rt-multi-thread"] }
-tonic = { version = "0.8.3", features = ["gzip"] }
+tonic = { version = "0.9.0", features = ["gzip"] }
 
 [dev-dependencies]
 random-manager = "0.0.5"
