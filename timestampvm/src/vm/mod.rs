@@ -20,6 +20,7 @@ use avalanche_types::{
     subnet::{
         self,
         rpc::{
+            context::Context,
             database::manager::{DatabaseManager, Manager},
             health::Checkable,
             snow::{
@@ -30,6 +31,7 @@ use avalanche_types::{
                     http_handler::{HttpHandler, LockOptions},
                     vm::{CommonVm, Connector},
                 },
+                validators::client::ValidatorStateClient,
             },
             snowman::block::{ChainVm, Getter, Parser},
         },
@@ -48,7 +50,7 @@ pub const PROPOSE_LIMIT_BYTES: usize = 1024 * 1024;
 /// Defined in a separate struct, for interior mutability in [`Vm`](Vm).
 /// To be protected with `Arc` and `RwLock`.
 pub struct State {
-    pub ctx: Option<subnet::rpc::context::Context>,
+    pub ctx: Option<Context<ValidatorStateClient>>,
     pub version: Version,
     pub genesis: Genesis,
 
@@ -212,10 +214,11 @@ where
     type AppSender = A;
     type ChainHandler = ChainHandler<ChainService<A>>;
     type StaticHandler = StaticHandler;
+    type ValidatorState = ValidatorStateClient;
 
     async fn initialize(
         &mut self,
-        ctx: Option<subnet::rpc::context::Context>,
+        ctx: Option<Context<Self::ValidatorState>>,
         db_manager: Self::DatabaseManager,
         genesis_bytes: &[u8],
         _upgrade_bytes: &[u8],
