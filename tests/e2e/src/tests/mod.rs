@@ -9,8 +9,6 @@ use std::{
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
 use avalanche_types::{ids, jsonrpc::client::info as avalanche_sdk_info, subnet};
 
-const AVALANCHEGO_VERSION: &str = "v1.10.0-fuji";
-
 #[tokio::test]
 async fn e2e() {
     let _ = env_logger::builder()
@@ -52,13 +50,9 @@ async fn e2e() {
             .unwrap()
             .to_string()
     } else {
-        let exec_path = avalanche_installer::avalanchego::github::download(
-            None,
-            None,
-            Some(AVALANCHEGO_VERSION.to_string()),
-        )
-        .await
-        .unwrap();
+        let exec_path = avalanche_installer::avalanchego::github::download(None, None, None)
+            .await
+            .unwrap();
         avalanchego_exec_path = exec_path;
         avalanche_installer::avalanchego::get_plugin_dir(&avalanchego_exec_path)
     };
