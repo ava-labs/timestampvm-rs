@@ -4,6 +4,7 @@ use std::{
     collections::{HashMap, VecDeque},
     io::{self, Error, ErrorKind},
     sync::Arc,
+    time::Duration,
 };
 
 use crate::{
@@ -33,10 +34,11 @@ use avalanche_types::{
                 },
                 validators::client::ValidatorStateClient,
             },
-            snowman::block::{ChainVm, Getter, Parser},
+            snowman::block::{BatchedChainVm, ChainVm, Getter, Parser},
         },
     },
 };
+use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use semver::Version;
 use tokio::sync::{mpsc::Sender, RwLock};
@@ -390,6 +392,33 @@ where
         Err(Error::new(
             ErrorKind::Unsupported,
             "issue_tx not implemented",
+        ))
+    }
+}
+
+#[tonic::async_trait]
+impl<A> BatchedChainVm for Vm<A>
+where
+    A: Send + Sync + Clone + 'static,
+{
+    type Block = Block;
+
+    async fn get_ancestors(
+        &self,
+        _block_id: ids::Id,
+        _max_block_num: i32,
+        _max_block_size: i32,
+        _max_block_retrival_time: Duration,
+    ) -> io::Result<Vec<Bytes>> {
+        Err(Error::new(
+            ErrorKind::Unsupported,
+            "get_ancestors not implemented",
+        ))
+    }
+    async fn batched_parse_block(&self, _blocks: &[Vec<u8>]) -> io::Result<Vec<Self::Block>> {
+        Err(Error::new(
+            ErrorKind::Unsupported,
+            "batched_parse_block not implemented",
         ))
     }
 }
