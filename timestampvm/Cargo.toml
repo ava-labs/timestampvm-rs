@@ -1,8 +1,8 @@
 [package]
 name = "timestampvm"
-version = "0.0.15" # https://crates.io/crates/timestampvm
+version = "0.0.16" # https://crates.io/crates/timestampvm
 edition = "2021"
-rust-version = "1.68"
+rust-version = "1.69"
 publish = true
 description = "Timestamp VM in Rust"
 documentation = "https://docs.rs/timestampvm"
@@ -11,20 +11,20 @@ repository = "https://github.com/ava-labs/timestampvm-rs"
 readme = "../README.md"
 
 [dependencies]
-avalanche-types = { version = "0.0.395", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
+avalanche-types = { version = "0.0.396", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
 base64 = { version = "0.21.2" }
 bytes = "1.4.0"
-chrono = "0.4.25"
-clap = { version = "4.3.0", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
+chrono = "0.4.26"
+clap = { version = "4.3.2", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"
 env_logger = "0.10.0"
 http-manager = { version = "0.0.14" }
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = { version = "18.0.0" }
 jsonrpc-derive = "18.0.0"
-log = "0.4.17"
-semver = "1.0.16"
-serde = { version = "1.0.152", features = ["derive"] }
+log = "0.4.18"
+semver = "1.0.17"
+serde = { version = "1.0.163", features = ["derive"] }
 serde_json = "1.0.96" # https://github.com/serde-rs/json/releases
 serde_with = { version = "3.0.0", features = ["hex"] }
 tokio = { version = "1.28.2", features = ["fs", "rt-multi-thread"] }
