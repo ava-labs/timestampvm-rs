@@ -9,7 +9,7 @@ use std::{
 use avalanche_network_runner_sdk::{BlockchainSpec, Client, GlobalConfig, StartRequest};
 use avalanche_types::{ids, jsonrpc::client::info as avalanche_sdk_info, subnet};
 
-const AVALANCHEGO_VERSION: &str = "v1.10.4";
+const AVALANCHEGO_VERSION: &str = "v1.10.9";
 
 #[tokio::test]
 async fn e2e() {
@@ -94,7 +94,7 @@ async fn e2e() {
         .start(StartRequest {
             exec_path: avalanchego_exec_path,
             num_nodes: Some(5),
-            plugin_dir: Some(plugins_dir),
+            plugin_dir: plugins_dir,
             global_node_config: Some(
                 serde_json::to_string(&GlobalConfig {
                     log_level: String::from("info"),
