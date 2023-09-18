@@ -394,6 +394,21 @@ where
             "issue_tx not implemented",
         ))
     }
+
+    // Passes back ok as a no-op for now.
+    // TODO: Remove after v1.11.x activates
+    async fn verify_height_index(&self) -> io::Result<()> {
+        Ok(())
+    }
+
+    // Returns an error as a no-op for now.
+    async fn get_block_id_at_height(&self, _height: u64) -> io::Result<ids::Id> {
+        Err(Error::new(ErrorKind::NotFound, "block id not found"))
+    }
+
+    async fn state_sync_enabled(&self) -> io::Result<bool> {
+        Ok(false)
+    }
 }
 
 #[tonic::async_trait]
