@@ -5,7 +5,7 @@
 
 # `timestampvm-rs`
 
-`timestampvm-rs` is a virtual machine that can build blocks from a user-provided arbitrary data. It is a minimal implementation of an Avalanche custom virtual machine (VM) in Rust, using the Avalanche [Rust SDK](https://github.com/ava-labs/avalanche-types-rs).
+`timestampvm-rs` is a virtual machine that can build blocks from arbitrary user-provided data. It is a minimal implementation of an Avalanche custom virtual machine (VM) in Rust, using the Avalanche [Rust SDK](https://github.com/ava-labs/avalanche-rs).
 
 Currently, Avalanche custom VM requires the following:
 
