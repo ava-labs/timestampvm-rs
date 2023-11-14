@@ -14,7 +14,7 @@ homepage = "https://avax.network"
 avalanche-installer = "0.0.77"
 avalanche-network-runner-sdk = "0.3.3" # https://crates.io/crates/avalanche-network-runner-sdk
 avalanche-types = { version = "0.1.4", features = ["jsonrpc_client", "subnet"] } # https://crates.io/crates/avalanche-types
-env_logger = "0.10.0"
+env_logger = "0.10.1"
 log = "0.4.19"
 random-manager = "0.0.5"
 serde_json = "1.0.108" # https://github.com/serde-rs/json/releases
