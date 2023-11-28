@@ -15,7 +15,7 @@ avalanche-types = { version = "0.1.4", features = ["subnet", "codec_base64"] } #
 base64 = { version = "0.21.5" }
 bytes = "1.4.0"
 chrono = "0.4.26"
-clap = { version = "4.4.8", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
+clap = { version = "4.4.10", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"
 env_logger = "0.10.1"
 http-manager = { version = "0.0.14" }
