@@ -3,3 +3,5 @@ members = [
     "tests/e2e",
     "timestampvm",
 ]
+
+resolver = "2"
