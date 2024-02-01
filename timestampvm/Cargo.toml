@@ -14,7 +14,7 @@ readme = "../README.md"
 avalanche-types = { version = "0.1.4", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
 base64 = { version = "0.21.7" }
 bytes = "1.4.0"
-chrono = "0.4.26"
+chrono = "0.4.33"
 clap = { version = "4.4.18", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"
 env_logger = "0.10.2"
