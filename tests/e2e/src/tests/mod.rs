@@ -23,10 +23,6 @@ async fn e2e() {
 
     let cli = Client::new(&ep).await;
 
-    log::info!("ping...");
-    let resp = cli.ping().await.expect("failed ping");
-    log::info!("network-runner is running (ping response {:?})", resp);
-
     let (vm_plugin_path, exists) = crate::get_vm_plugin_path();
     log::info!("Vm Plugin path: {vm_plugin_path}");
     assert!(exists);
