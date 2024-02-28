@@ -22,7 +22,7 @@ use avalanche_types::{
         self,
         rpc::{
             context::Context,
-            database::manager::{DatabaseManager, Manager},
+            database::{manager::DatabaseManager, BoxedDatabase},
             health::Checkable,
             snow::{
                 self,
@@ -221,7 +221,7 @@ where
     async fn initialize(
         &mut self,
         ctx: Option<Context<Self::ValidatorState>>,
-        db_manager: Self::DatabaseManager,
+        db_manager: BoxedDatabase,
         genesis_bytes: &[u8],
         _upgrade_bytes: &[u8],
         _config_bytes: &[u8],
@@ -241,9 +241,8 @@ where
         let genesis = Genesis::from_slice(genesis_bytes)?;
         vm_state.genesis = genesis;
 
-        let current = db_manager.current().await?;
         let state = state::State {
-            db: Arc::new(RwLock::new(current.db)),
+            db: Arc::new(RwLock::new(db_manager)),
             verified_blocks: Arc::new(RwLock::new(HashMap::new())),
         };
         vm_state.state = Some(state.clone());

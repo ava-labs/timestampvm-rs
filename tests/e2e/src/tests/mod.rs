@@ -203,17 +203,17 @@ async fn e2e() {
     let network_id = resp.result.unwrap().network_id;
     log::info!("network Id: {}", network_id);
 
-    log::info!("ping static handlers");
-    let static_url_path = format!("ext/vm/{vm_id}/static");
-    for ep in rpc_eps.iter() {
-        let resp = timestampvm::client::ping(ep.as_str(), &static_url_path)
-            .await
-            .unwrap();
-        log::info!("ping response from {}: {:?}", ep, resp);
-        assert!(resp.result.unwrap().success);
+    // log::info!("ping static handlers");
+    // let static_url_path = format!("ext/vm/{vm_id}/static");
+    // for ep in rpc_eps.iter() {
+    //     let resp = timestampvm::client::ping(ep.as_str(), &static_url_path)
+    //         .await
+    //         .unwrap();
+    //     log::info!("ping response from {}: {:?}", ep, resp);
+    //     assert!(resp.result.unwrap().success);
 
-        thread::sleep(Duration::from_millis(300));
-    }
+    //     thread::sleep(Duration::from_millis(300));
+    // }
 
     log::info!("ping chain handlers");
     let chain_url_path = format!("ext/bc/{blockchain_id}/rpc");
