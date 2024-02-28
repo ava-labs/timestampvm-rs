@@ -1,6 +1,6 @@
 [package]
 name = "timestampvm"
-version = "0.0.18" # https://crates.io/crates/timestampvm
+version = "0.0.19" # https://crates.io/crates/timestampvm
 edition = "2021"
 rust-version = "1.70"
 publish = true
@@ -11,18 +11,18 @@ repository = "https://github.com/ava-labs/timestampvm-rs"
 readme = "../README.md"
 
 [dependencies]
-avalanche-types = { version = "0.1.4", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
+avalanche-types = { version = "0.1.5", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
 base64 = { version = "0.21.7" }
-bytes = "1.4.0"
+bytes = "1.5.0"
 chrono = "0.4.34"
 clap = { version = "4.5.1", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
 derivative = "2.2.0"
-env_logger = "0.10.2"
+env_logger = "0.11.2"
 http-manager = { version = "0.0.14" }
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = { version = "18.0.0" }
 jsonrpc-derive = "18.0.0"
-log = "0.4.19"
+log = "0.4.20"
 semver = "1.0.22"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114" # https://github.com/serde-rs/json/releases
