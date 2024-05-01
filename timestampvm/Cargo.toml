@@ -12,7 +12,7 @@ readme = "../README.md"
 
 [dependencies]
 avalanche-types = { version = "0.1.5", features = ["subnet", "codec_base64"] } # https://crates.io/crates/avalanche-types
-base64 = { version = "0.22.0" }
+base64 = { version = "0.22.1" }
 bytes = "1.6.0"
 chrono = "0.4.38"
 clap = { version = "4.5.4", features = ["cargo", "derive"] } # https://github.com/clap-rs/clap/releases
