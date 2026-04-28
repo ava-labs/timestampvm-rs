@@ -83,7 +83,7 @@ jobs:
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
-        uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3
         with:
           version: "3.x"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -115,7 +115,7 @@ jobs:
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
-        uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3
         with:
           version: "3.x"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -175,7 +175,7 @@ jobs:
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
       - name: Install protoc
-        uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3
         with:
           version: "3.x"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
