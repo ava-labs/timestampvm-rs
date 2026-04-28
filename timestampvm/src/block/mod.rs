@@ -401,7 +401,7 @@ async fn test_block() {
 
 #[tonic::async_trait]
 impl snowman::Block for Block {
-    async fn bytes(&self) -> &[u8] {
+    async fn bytes(&self) -> &'life0 [u8] {
         return self.bytes.as_ref();
     }
 
