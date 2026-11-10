@@ -9,24 +9,25 @@ on:
       - "*"
   pull_request:
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   static_analysis:
+    permissions:
+      contents: write
     name: Static analysis (lint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          profile: minimal
-          components: rustfmt, clippy
-          override: true
+        shell: bash
+        run: |
+          rustup toolchain install nightly --profile minimal --component rustfmt --component clippy
+          rustup override set nightly
 
       - name: Check Rust version
         run: rustc --version
@@ -74,11 +75,15 @@ jobs:
   #       run: scripts/tests.unused.sh
 
   unit_tests:
+    permissions:
+      contents: read
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
@@ -89,11 +94,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup override set stable
 
       - name: Check Rust version
         run: rustc --version
@@ -106,11 +110,15 @@ jobs:
         run: scripts/tests.unit.sh
 
   e2e_tests:
+    permissions:
+      contents: read
     name: e2e tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
@@ -121,11 +129,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup override set stable
 
       - name: Check Rust version
         run: rustc --version
@@ -135,15 +142,15 @@ jobs:
           cache-on-failure: true
 
       - name: Build plugin
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --bin timestampvm
+        shell: bash
+        run: cargo build --release --bin timestampvm
 
       - name: Run e2e tests
         run: VM_PLUGIN_PATH=/home/runner/work/timestampvm-rs/timestampvm-rs/target/release/timestampvm scripts/tests.e2e.sh 1.11.1
 
   release:
+    permissions:
+      contents: write
     name: Release ${{ matrix.job.target }} (${{ matrix.job.os }})
     runs-on: ${{ matrix.job.os }}
     #needs: [static_analysis, check_cargo_unused, unit_tests, e2e_tests]
@@ -171,6 +178,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       # or use "abelfodil/protoc-action@v1"
       # ref. https://github.com/hyperium/tonic/issues/1047#issuecomment-1222508191
@@ -181,12 +190,12 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: ${{ matrix.job.target }}
-          override: true
+        shell: bash
+        env:
+          RUST_TARGET: ${{ matrix.job.target }}
+        run: |
+          rustup toolchain install stable --profile minimal --target "${RUST_TARGET}"
+          rustup override set stable
 
       - name: Check Rust version
         run: rustc --version
@@ -213,13 +222,11 @@ jobs:
 
       # ref. https://github.com/actions-rs/cargo
       - name: Build target
+        shell: bash
         env:
           RUSTFLAGS: -C link-args=-s
-        uses: actions-rs/cargo@v1
-        with:
-          # use-cross: true
-          command: build
-          args: --release --bin timestampvm --target ${{ matrix.job.target }}
+          CARGO_TARGET: ${{ matrix.job.target }}
+        run: cargo build --release --bin timestampvm --target "${CARGO_TARGET}"
 
       - name: Compress binaries
         id: release_artifacts
@@ -252,29 +259,64 @@ jobs:
       # https://github.com/softprops/action-gh-release
       # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
       - name: Release latest
-        uses: softprops/action-gh-release@v1
         if: ${{ github.ref == 'refs/heads/main' }}
-        with:
-          name: Latest release
-          tag_name: latest
-          prerelease: true
-          body: Latest builds from the last commit.
-          files: |
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: latest
+          RELEASE_NAME: Latest release
+          RELEASE_BODY: Latest builds from the last commit.
+          RELEASE_FILES: |
             ${{ steps.release_artifacts.outputs.file_name_timestampvm_rs }}
             ${{ steps.release_artifacts.outputs.file_name_timestampvm_rs_tar_gz }}
+        run: |
+          set -eo pipefail
+          files=()
+          while IFS= read -r pattern; do
+            [ -n "$pattern" ] || continue
+            for f in $pattern; do
+              [ -e "$f" ] || { echo "::error::No file matches ${pattern}"; exit 1; }
+              files+=("$f")
+            done
+          done <<< "${RELEASE_FILES}"
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" --title "${RELEASE_NAME}" --notes "${RELEASE_BODY}" --prerelease=true
+            if [ ${#files[@]} -gt 0 ]; then
+              gh release upload "${RELEASE_TAG}" "${files[@]}" --clobber --repo "${GITHUB_REPOSITORY}"
+            fi
+          else
+            gh release create "${RELEASE_TAG}" "${files[@]}" --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" --title "${RELEASE_NAME}" --notes "${RELEASE_BODY}" --prerelease
+          fi
 
       # release only for tags
       # https://github.com/softprops/action-gh-release
       # https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
       - name: Release tag
-        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
-        with:
-          name: ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          draft: true
-          prerelease: true
-          body: Release builds for ${{ github.ref_name }}.
-          files: |
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_NAME: ${{ github.ref_name }}
+          RELEASE_BODY: Release builds for ${{ github.ref_name }}.
+          RELEASE_FILES: |
             ${{ steps.release_artifacts.outputs.file_name_timestampvm_rs }}
             ${{ steps.release_artifacts.outputs.file_name_timestampvm_rs_tar_gz }}
+        run: |
+          set -eo pipefail
+          files=()
+          while IFS= read -r pattern; do
+            [ -n "$pattern" ] || continue
+            for f in $pattern; do
+              [ -e "$f" ] || { echo "::error::No file matches ${pattern}"; exit 1; }
+              files+=("$f")
+            done
+          done <<< "${RELEASE_FILES}"
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" --title "${RELEASE_NAME}" --notes "${RELEASE_BODY}" --draft=true --prerelease=true
+            if [ ${#files[@]} -gt 0 ]; then
+              gh release upload "${RELEASE_TAG}" "${files[@]}" --clobber --repo "${GITHUB_REPOSITORY}"
+            fi
+          else
+            gh release create "${RELEASE_TAG}" "${files[@]}" --repo "${GITHUB_REPOSITORY}" --target "${GITHUB_SHA}" --title "${RELEASE_NAME}" --notes "${RELEASE_BODY}" --draft --prerelease
+          fi
